@@ -47,7 +47,7 @@ cprd_dataset <- set_up_data(
 
 # Predicting  drug assignment
 
-bart_ps_model_MFN <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_MFN <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                 select(
                                                   # Biomarkers
                                                   precreatinine_blood,
@@ -87,13 +87,13 @@ bart_ps_model_MFN <- bartMachine::bartMachine(X = cprd %>%
                                                   gender, 
                                                   # prac_region, 
                                                   ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                  ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                  ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                   # alcohol_cat, 
                                                   dstartdate_age, dstartdate_dm_dur, 
                                                   # dstartmonth,
                                                   CCI_index
                                                 ),
-                                              y = cprd %>%
+                                              y = cprd_dataset %>%
                                                 mutate(drugclass = ifelse(drugclass == "MFN", "MFN", "Other"),
                                                        drugclass = factor(drugclass)) %>%
                                                 select(drugclass) %>%
@@ -105,24 +105,24 @@ bart_ps_model_MFN <- bartMachine::bartMachine(X = cprd %>%
                                               serialize = TRUE)
 
 
-saveRDS(bart_ps_model_MFN, "PS_model/bart_ps_model_MFN.rds")
+saveRDS(bart_ps_model_MFN, "results/PS_model/bart_ps_model_MFN.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_MFN.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_MFN.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_MFN <- var_selection_by_permute(bart_ps_model_MFN)
 dev.off()
 
-saveRDS(vs_bart_ps_model_MFN, "PS_model/vs_bart_ps_model_MFN.rds")
+saveRDS(vs_bart_ps_model_MFN, "results/PS_model/vs_bart_ps_model_MFN.rds")
 
 
 ### DPP4
 
 # Predicting  drug assignment
 
-bart_ps_model_DPP4 <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_DPP4 <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                  select(
                                                    # Biomarkers
                                                    precreatinine_blood,
@@ -162,13 +162,13 @@ bart_ps_model_DPP4 <- bartMachine::bartMachine(X = cprd %>%
                                                    gender, 
                                                    # prac_region, 
                                                    ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                   ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                   ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                    # alcohol_cat, 
                                                    dstartdate_age, dstartdate_dm_dur, 
                                                    # dstartmonth,
                                                    CCI_index
                                                  ),
-                                               y = cprd %>%
+                                               y = cprd_dataset %>%
                                                  mutate(drugclass = ifelse(drugclass == "DPP4", "DPP4", "Other"),
                                                         drugclass = factor(drugclass)) %>%
                                                  select(drugclass) %>%
@@ -181,17 +181,17 @@ bart_ps_model_DPP4 <- bartMachine::bartMachine(X = cprd %>%
 
 
 
-saveRDS(bart_ps_model_DPP4, "PS_model/bart_ps_model_DPP4.rds")
+saveRDS(bart_ps_model_DPP4, "results/PS_model/bart_ps_model_DPP4.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_DPP4.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_DPP4.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_DPP4 <- var_selection_by_permute(bart_ps_model_DPP4)
 dev.off()
 
-saveRDS(vs_bart_ps_model_DPP4, "PS_model/vs_bart_ps_model_DPP4.rds")
+saveRDS(vs_bart_ps_model_DPP4, "results/PS_model/vs_bart_ps_model_DPP4.rds")
 
 
 
@@ -199,7 +199,7 @@ saveRDS(vs_bart_ps_model_DPP4, "PS_model/vs_bart_ps_model_DPP4.rds")
 
 # Predicting  drug assignment
 
-bart_ps_model_GLP1 <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_GLP1 <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                  select(
                                                    # Biomarkers
                                                    precreatinine_blood,
@@ -239,13 +239,13 @@ bart_ps_model_GLP1 <- bartMachine::bartMachine(X = cprd %>%
                                                    gender, 
                                                    # prac_region, 
                                                    ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                   ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                   ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                    # alcohol_cat, 
                                                    dstartdate_age, dstartdate_dm_dur, 
                                                    # dstartmonth,
                                                    CCI_index
                                                  ),
-                                               y = cprd %>%
+                                               y = cprd_dataset %>%
                                                  mutate(drugclass = ifelse(drugclass == "GLP1", "GLP1", "Other"),
                                                         drugclass = factor(drugclass)) %>%
                                                  select(drugclass) %>%
@@ -258,17 +258,17 @@ bart_ps_model_GLP1 <- bartMachine::bartMachine(X = cprd %>%
 
 
 
-saveRDS(bart_ps_model_GLP1, "PS_model/bart_ps_model_GLP1.rds")
+saveRDS(bart_ps_model_GLP1, "results/PS_model/bart_ps_model_GLP1.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_GLP1.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_GLP1.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_GLP1 <- var_selection_by_permute(bart_ps_model_GLP1)
 dev.off()
 
-saveRDS(vs_bart_ps_model_GLP1, "PS_model/vs_bart_ps_model_GLP1.rds")
+saveRDS(vs_bart_ps_model_GLP1, "results/PS_model/vs_bart_ps_model_GLP1.rds")
 
 
 
@@ -276,7 +276,7 @@ saveRDS(vs_bart_ps_model_GLP1, "PS_model/vs_bart_ps_model_GLP1.rds")
 
 # Predicting  drug assignment
 
-bart_ps_model_SGLT2 <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_SGLT2 <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                   select(
                                                     # Biomarkers
                                                     precreatinine_blood,
@@ -316,13 +316,13 @@ bart_ps_model_SGLT2 <- bartMachine::bartMachine(X = cprd %>%
                                                     gender, 
                                                     # prac_region, 
                                                     ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                    ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                    ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                     # alcohol_cat, 
                                                     dstartdate_age, dstartdate_dm_dur, 
                                                     # dstartmonth,
                                                     CCI_index
                                                   ),
-                                                y = cprd %>%
+                                                y = cprd_dataset %>%
                                                   mutate(drugclass = ifelse(drugclass == "SGLT2", "SGLT2", "Other"),
                                                          drugclass = factor(drugclass)) %>%
                                                   select(drugclass) %>%
@@ -335,17 +335,17 @@ bart_ps_model_SGLT2 <- bartMachine::bartMachine(X = cprd %>%
 
 
 
-saveRDS(bart_ps_model_SGLT2, "PS_model/bart_ps_model_SGLT2.rds")
+saveRDS(bart_ps_model_SGLT2, "results/PS_model/bart_ps_model_SGLT2.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_SGLT2.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_SGLT2.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_SGLT2 <- var_selection_by_permute(bart_ps_model_SGLT2)
 dev.off()
 
-saveRDS(vs_bart_ps_model_SGLT2, "PS_model/vs_bart_ps_model_SGLT2.rds")
+saveRDS(vs_bart_ps_model_SGLT2, "results/PS_model/vs_bart_ps_model_SGLT2.rds")
 
 
 
@@ -353,7 +353,7 @@ saveRDS(vs_bart_ps_model_SGLT2, "PS_model/vs_bart_ps_model_SGLT2.rds")
 
 # Predicting  drug assignment
 
-bart_ps_model_SU <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_SU <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                select(
                                                  # Biomarkers
                                                  precreatinine_blood,
@@ -393,13 +393,13 @@ bart_ps_model_SU <- bartMachine::bartMachine(X = cprd %>%
                                                  gender, 
                                                  # prac_region, 
                                                  ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                 ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                 ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                  # alcohol_cat, 
                                                  dstartdate_age, dstartdate_dm_dur, 
                                                  # dstartmonth,
                                                  CCI_index
                                                ),
-                                             y = cprd %>%
+                                             y = cprd_dataset %>%
                                                mutate(drugclass = ifelse(drugclass == "SU", "SU", "Other"),
                                                       drugclass = factor(drugclass)) %>%
                                                select(drugclass) %>%
@@ -411,17 +411,17 @@ bart_ps_model_SU <- bartMachine::bartMachine(X = cprd %>%
                                              serialize = TRUE)
 
 
-saveRDS(bart_ps_model_SU, "PS_model/bart_ps_model_SU.rds")
+saveRDS(bart_ps_model_SU, "results/PS_model/bart_ps_model_SU.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_SU.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_SU.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_SU <- var_selection_by_permute(bart_ps_model_SU)
 dev.off()
 
-saveRDS(vs_bart_ps_model_SU, "PS_model/vs_bart_ps_model_SU.rds")
+saveRDS(vs_bart_ps_model_SU, "results/PS_model/vs_bart_ps_model_SU.rds")
 
 
 
@@ -430,7 +430,7 @@ saveRDS(vs_bart_ps_model_SU, "PS_model/vs_bart_ps_model_SU.rds")
 
 # Predicting  drug assignment
 
-bart_ps_model_TZD <- bartMachine::bartMachine(X = cprd %>%
+bart_ps_model_TZD <- bartMachine::bartMachine(X = cprd_dataset %>%
                                                 select(
                                                   # Biomarkers
                                                   precreatinine_blood,
@@ -470,13 +470,13 @@ bart_ps_model_TZD <- bartMachine::bartMachine(X = cprd %>%
                                                   gender, 
                                                   # prac_region, 
                                                   ethnicity_5cat, imd2015_10, dm_diag_age,
-                                                  ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+                                                  ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs, stopdrug_3m_3mFU_MFN_hist,
                                                   # alcohol_cat, 
                                                   dstartdate_age, dstartdate_dm_dur, 
                                                   # dstartmonth,
                                                   CCI_index
                                                 ),
-                                              y = cprd %>%
+                                              y = cprd_dataset %>%
                                                 mutate(drugclass = ifelse(drugclass == "TZD", "TZD", "Other"),
                                                        drugclass = factor(drugclass)) %>%
                                                 select(drugclass) %>%
@@ -489,16 +489,16 @@ bart_ps_model_TZD <- bartMachine::bartMachine(X = cprd %>%
 
 
 
-saveRDS(bart_ps_model_TZD, "PS_model/bart_ps_model_TZD.rds")
+saveRDS(bart_ps_model_TZD, "results/PS_model/bart_ps_model_TZD.rds")
 
 
 # Variable selection
 
-pdf(file = "figures/Prop Score Var Selection/bart_ps_model_var_select_TZD.pdf", width = 18, height = 11)
+pdf(file = "results/figures/Prop Score Var Selection/bart_ps_model_var_select_TZD.pdf", width = 18, height = 11)
 # error with cv
 vs_bart_ps_model_TZD <- var_selection_by_permute(bart_ps_model_TZD)
 dev.off()
 
-saveRDS(vs_bart_ps_model_TZD, "PS_model/vs_bart_ps_model_TZD.rds")
+saveRDS(vs_bart_ps_model_TZD, "results/PS_model/vs_bart_ps_model_TZD.rds")
 
 
