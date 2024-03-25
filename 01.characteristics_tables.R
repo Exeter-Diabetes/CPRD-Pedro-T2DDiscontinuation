@@ -232,7 +232,7 @@ vars <- c(
   # Outcome
   "stopdrug_3m_6mFU", "stopdrug_6m_6mFU",
   # Drug taken
-  "drugline",
+  "drugline", "numdrugs",
   # Biomarkers
   "prefastingglucose", "prefastingglucose_na", "prehdl", "prehdl_na", 
   "pretriglyceride", "pretriglyceride_na", "precreatinine_blood", "precreatinine_blood_na", 
@@ -273,7 +273,7 @@ vars_cat <- c(
   # Outcome
   "stopdrug_3m_6mFU", "stopdrug_6m_6mFU",
   # Drug taken
-  "drugline",
+  "drugline", "numdrugs",
   # Biomarkers
   "prefastingglucose_na", "prehdl_na", 
   "pretriglyceride_na", "precreatinine_blood_na", 
@@ -429,6 +429,10 @@ table_characteristics_tzd <- CreateTableOne(
 table_characteristics_tzd_print <- print(table_characteristics_tzd, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
 
 write.csv(table_characteristics_tzd_print, file = paste0(output_path, "/table_characteristics_tzd.csv"))
+
+
+
+
 
 
 #########################################################################################################
@@ -1122,7 +1126,7 @@ cprd_dataset %>%
     hosp_admission_prev_year, hosp_admission_prev_year_count,
     # Extra info
     gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
-    ins_in_1_year, prebmi, smoking_cat, drugline,
+    ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs,
     alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
     CCI_index
   ) %>%
