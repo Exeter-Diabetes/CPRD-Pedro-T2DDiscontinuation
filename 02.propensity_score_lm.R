@@ -77,7 +77,7 @@ drug.pscores <- SumStat(
     "gender", 
     # "prac_region", 
     "ethnicity_5cat", "imd2015_10", "dm_diag_age",
-    "ins_in_1_year", "prebmi", "smoking_cat", "drugline", "stopdrug_3m_3mFU_MFN_hist",
+    "ins_in_1_year", "prebmi", "smoking_cat", "drugline", "numdrugs", "stopdrug_3m_3mFU_MFN_hist",
     # "alcohol_cat", 
     "dstartdate_age", "dstartdate_dm_dur", 
     # "dstartmonth",
