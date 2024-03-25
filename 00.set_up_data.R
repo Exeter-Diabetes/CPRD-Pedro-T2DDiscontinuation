@@ -26,7 +26,7 @@ set_up_data <- function(
   if(!(diagnosis %in% c(TRUE, FALSE))) {stop("'diagnosis' must be TRUE or FALSE.")}
   # Check for 'dataset'
   if(missing(dataset)) {stop("'dataset' needs to be supplied.")}
-  if(!(dataset %in% c("full.dataset", "ps.dataset"))) {stop("'dataset' needs to be: full.dataset / ps.dataset")}
+  if(!(dataset %in% c("full.dataset", "ps.dataset"))) {stop("'dataset' needs to be: full.dataset / ps.dataset / ")}
   
   
   ###############################################
@@ -195,7 +195,7 @@ set_up_data <- function(
       gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
       ins_in_1_year, prebmi, smoking_cat, stopdrug_3m_3mFU_MFN_hist,
       alcohol_cat, fh_diabetes, dstartdate_age, dstartdate_dm_dur, dstartmonth,
-      CCI_index, drugline
+      CCI_index, drugline, numdrugs
     ) %>%
     as.data.frame() %>%
     mutate_at(
@@ -230,7 +230,11 @@ set_up_data <- function(
     mutate(
       drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
       stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
-      stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist)
+      stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
+      drugline = ifelse(drugline > 4, 5, drugline),
+      drugline = factor(drugline, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+")),
+      numdrugs = ifelse(numdrugs > 4, 5, numdrugs),
+      numdrugs = factor(numdrugs, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+"))
     )
   
   
@@ -242,47 +246,57 @@ set_up_data <- function(
   #####################################################################################
   
   
-  cprd_dataset <- cprd_dataset %>%
-    select(
-      patid, dstartdate,
-      # Outcome
-      stopdrug_3m_6mFU,
-      # Biomarkers
-      precreatinine_blood, 
-      prealt, pretotalcholesterol, predbp, presbp, prehba1c, 
-      preegfr, prebilirubin,
-      # Commorbidities
-      preckdstage, predrug_frailty_mild, predrug_frailty_moderate,
-      predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina,
-      predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd,
-      predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy,
-      predrug_fh_premature_cvd,
-      predrug_haem_cancer, predrug_heartfailure,
-      predrug_hypertension, predrug_ihd, predrug_myocardialinfarction,
-      predrug_neuropathy, predrug_otherneuroconditions, predrug_pad,
-      predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension,
-      predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis,
-      predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke,
-      predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
-      predrug_benignprostatehyperplasia, predrug_micturition_control,
-      predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
-      predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
-      predrug_dka, predrug_osteoporosis, predrug_unstableangina,
-      predrug_amputation,
-      hosp_admission_prev_year, hosp_admission_prev_year_count,
-      # Extra info
-      gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
-      ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
-      alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
-      CCI_index,
-      drugclass
-    ) %>%
-    drop_na() %>%
-    as.data.frame()
-  
-  
-  if (dataset == "ps.dataset") {return(cprd_dataset)}
+  if (dataset == "ps.dataset") {
+    
+    cprd_dataset <- cprd_dataset %>%
+      select(
+        patid, dstartdate,
+        # Outcome
+        stopdrug_3m_6mFU,
+        # Biomarkers
+        precreatinine_blood, 
+        prealt, pretotalcholesterol, predbp, presbp, prehba1c, 
+        preegfr, prebilirubin,
+        # Commorbidities
+        preckdstage, predrug_frailty_mild, predrug_frailty_moderate,
+        predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina,
+        predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd,
+        predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy,
+        predrug_fh_premature_cvd,
+        predrug_haem_cancer, predrug_heartfailure,
+        predrug_hypertension, predrug_ihd, predrug_myocardialinfarction,
+        predrug_neuropathy, predrug_otherneuroconditions, predrug_pad,
+        predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension,
+        predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis,
+        predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke,
+        predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
+        predrug_benignprostatehyperplasia, predrug_micturition_control,
+        predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
+        predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
+        predrug_dka, predrug_osteoporosis, predrug_unstableangina,
+        predrug_amputation,
+        hosp_admission_prev_year, hosp_admission_prev_year_count,
+        # Extra info
+        gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
+        ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
+        alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
+        CCI_index, drugline, numdrugs,
+        drugclass
+      ) %>%
+      drop_na() %>%
+      as.data.frame()
+    
+    
+    return(cprd_dataset)
+    
+    }
   
 }
+
+
+
+
+
+
 
 
