@@ -59,6 +59,7 @@ set_up_data <- function(
   # Keep patients above 2014-01-01
   
   cprd_dataset <- cprd_dataset %>%
+    mutate(dstartdate = as.Date(dstartdate)) %>%
     filter(dstartdate > "2014-01-01")
   
   
@@ -104,6 +105,36 @@ set_up_data <- function(
   
   #####################################################################################
   #####################################################################################
+
+  # Remove patients with HbA1c above 53
+  
+  cprd_dataset <- cprd_dataset %>%
+    filter(is.na(prehba1c) | prehba1c > 53)
+  
+  
+  ## Check patients after data
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients HbA1c above 53:", nrow(cprd_dataset)))
+    print("#####################################")
+  }
+  
+  
+  #####################################################################################
+  #####################################################################################
+  
+  # Remove patients with CKD stage 3 or above
+  
+  cprd_dataset <- cprd_dataset %>%
+    filter(preckdstage %in% c("stage_1", "stage_2"))
+  
+  ## Check patients after data
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients CKD stage 1 or 2:", nrow(cprd_dataset)))
+    print("#####################################")
+  }
+  
   
   
   # Create necessary variables
@@ -111,45 +142,19 @@ set_up_data <- function(
   ### selecting variables: Missing - number of chronic illnesses q: just sum over the vars listed below?
   cprd_dataset <- cprd_dataset %>%
     mutate(
-      # Month of start
-      dstartmonth = format(as.Date(dstartdate, format="%d/%m/%Y"),"%m"),
       
+      # Statins use
+      predrug_statins = ifelse(!is.na(predrug_latest_statins), 1, 0),
+
+      # Blood pressure medication
+      predrug_bloodmed = ifelse(!is.na(predrug_latest_ace_inhibitors) | 
+                                  !is.na(predrug_latest_beta_blockers) |
+                                  !is.na(predrug_latest_calcium_channel_blockers) |
+                                  !is.na(predrug_latest_thiazide_diuretics) |
+                                  !is.na(predrug_latest_loop_diuretics) |
+                                  !is.na(predrug_latest_ksparing_diuretics) |
+                                  !is.na(predrug_latest_arb)),
       
-      # Charlson Comorbidity Index (CCI) https://www.mdcalc.com/calc/3917/charlson-comorbidity-index-cci
-      ## Age limits <50 0, 50-59 1, 60-69 2, 70-79 3, >=80 4
-      CCI_index = ifelse(dstartdate_age < 50, 0, ifelse(dstartdate_age < 60, 1, ifelse(dstartdate_age < 70, 2, ifelse(dstartdate_age < 80, 3, 4)))),
-      ## Myocardial infarction Yes +1
-      CCI_index = ifelse(predrug_incident_mi == 1, CCI_index + 1, CCI_index),
-      ## Congestive Heart Failure -> using Heart failure Yes +1  (we have predrug_primary_hhf and predrug_heartfailure, will use predrug_heartfailure)
-      CCI_index = ifelse(predrug_heartfailure == 1, CCI_index + 1, CCI_index),
-      ## Peripheral vascular disease Yes +1
-      # CCI_index = 
-      ## Cerebrovascular accident or Transient ischemic attack -> using predrug_tia Yes +1
-      CCI_index = ifelse(predrug_tia == 1, CCI_index + 1, CCI_index),
-      ## Dementia Yes +1
-      CCI_index = ifelse(predrug_dementia == 1, CCI_index + 1, CCI_index),
-      ## CPOD - chronic obstructive pulmonary disease Yes +1
-      CCI_index = ifelse(predrug_copd == 1, CCI_index + 1, CCI_index),
-      ## Connective tissue disease Yes +1
-      # CCI_index = 
-      ## Peptic ulcer disease Yes +1
-      # CCI_index = 
-      ## Liver disease None 0, Mild +1, Moderate to severe +3
-      # CCI_index = 
-      ## Diabetes mellitus None or diet 0, Uncomplicated +1, End-organ damage +2
-      CCI_index = CCI_index + 1
-      ## Hemiplegia Yes +2
-      # CCI_index = 
-      ## Moderate to severe CKD (Severe = on dialysis, status post kidney transplant, uremia, moderate = creatinine >3 mg/dL (0.27 mmol/L)) Yes +2
-      # CCI_index = 
-      ## Solid tumor None 0, Localized +2, Metastatic +6
-      # CCI_index = 
-      ## Leukaemia Yes +2
-      # CCI_index = 
-      ## Lymphoma Yes +2
-      # CCI_index = 
-      ## AIDS Yes +2
-      # CCI_index = 
     )
   
   
@@ -162,134 +167,74 @@ set_up_data <- function(
   
   cprd_dataset <- cprd_dataset %>%
     select(
+      # patient info
       patid, dstartdate,
       # Outcome
-      stopdrug_3m_6mFU, stopdrug_6m_6mFU,
+      stopdrug_3m_6mFU,
       # Drug taken
       drugclass, drugsubstances, drugcombo,
-      # Biomarkers
-      prefastingglucose, prehdl, pretriglyceride, precreatinine_blood, preldl, 
-      prealt, preast, pretotalcholesterol, predbp, presbp, preacr, prehba1c, 
-      preegfr, prealbumin_blood, prebilirubin, prehaematocrit, prehaemoglobin, 
-      prepcr,
-      # Commorbidities
-      preckdstage, predrug_frailty_mild, predrug_frailty_moderate, 
-      predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina, 
-      predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd, 
-      predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy, 
-      predrug_fh_premature_cvd, 
-      predrug_haem_cancer, predrug_heartfailure, 
-      predrug_hypertension, predrug_ihd, predrug_myocardialinfarction, 
-      predrug_neuropathy, predrug_otherneuroconditions, predrug_pad, 
-      predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension, 
-      predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis, 
-      predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke, 
-      predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
-      predrug_benignprostatehyperplasia, predrug_micturition_control,
-      predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
-      predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
-      predrug_dka, predrug_osteoporosis, predrug_unstableangina, 
-      predrug_amputation,
-      hosp_admission_prev_year, hosp_admission_prev_year_count,
       # Extra info
-      gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
-      ins_in_1_year, prebmi, smoking_cat, stopdrug_3m_3mFU_MFN_hist,
-      alcohol_cat, fh_diabetes, dstartdate_age, dstartdate_dm_dur, dstartmonth,
-      CCI_index, drugline, numdrugs
+      dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
+      predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
+      # Biomarkers
+      prehba1c, preegfr, prebmi, preldl, prehdl, pretriglyceride, prealt,
+      # Comorbidities
+      ## Hist of cardiovascular
+      predrug_angina, predrug_myocardialinfarction, predrug_ihd, predrug_pad,
+      predrug_revasc, predrug_stroke, predrug_heartfailure, predrug_hypertension,
+      ### Microvascular
+      predrug_retinopathy, predrug_diabeticnephropathy, predrug_neuropathy,
+      ## CKD
+      preckdstage, 
+      ## CLD
+      predrug_cld,
+      
+       
     ) %>%
     as.data.frame() %>%
+    mutate(
+      imd2015_10 = ifelse(imd2015_10 %in% c(1, 2), 1, ifelse(imd2015_10 %in% c(3, 4), 2, ifelse(imd2015_10 %in% c(5, 6), 3, ifelse(imd2015_10 %in% c(7, 8), 4, 5))))
+    ) %>%
     mutate_at(
       c(
         # Outcome
-        "stopdrug_3m_6mFU", "stopdrug_6m_6mFU",
-        # Commorbidities
-        "preckdstage", "predrug_frailty_mild", "predrug_frailty_moderate", 
-        "predrug_frailty_severe", "predrug_primary_hhf", "predrug_af", "predrug_angina", 
-        "predrug_asthma", "predrug_bronchiectasis", "predrug_cld", "predrug_copd", 
-        "predrug_cysticfibrosis", "predrug_dementia", "predrug_diabeticnephropathy", 
-        "predrug_fh_premature_cvd", 
-        "predrug_haem_cancer", "predrug_heartfailure", 
-        "predrug_hypertension", "predrug_ihd", "predrug_myocardialinfarction", 
-        "predrug_neuropathy", "predrug_otherneuroconditions", "predrug_pad", 
-        "predrug_pulmonaryfibrosis", "predrug_pulmonaryhypertension", 
-        "predrug_retinopathy", "predrug_revasc", "predrug_rheumatoidarthritis", 
-        "predrug_solid_cancer", "predrug_solidorgantransplant", "predrug_stroke", 
-        "predrug_tia", "predrug_anxiety_disorders", "predrug_medspecific_gi",
-        "predrug_benignprostatehyperplasia", "predrug_micturition_control",
-        "predrug_volume_depletion", "predrug_urinary_frequency", "predrug_falls",
-        "predrug_lowerlimbfracture", "predrug_incident_mi", "predrug_incident_stroke",
-        "predrug_dka", "predrug_osteoporosis", "predrug_unstableangina", 
-        "predrug_amputation",
-        "hosp_admission_prev_year",
+        "stopdrug_3m_6mFU",
         # Extra info
-        "gender", "prac_region", "ethnicity_5cat", "imd2015_10",
-        "ins_in_1_year", "smoking_cat",
-        "alcohol_cat", "fh_diabetes"),
+        "smoking_cat", "imd2015_10",
+        "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
+        # Comorbidities
+        ## Hist of cardiovascular
+        "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
+        "predrug_revasc", "predrug_stroke", "predrug_heartfailure", "predrug_hypertension",
+        ### Microvascular
+        "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
+        ## CKD
+        "preckdstage", 
+        ## CLD
+        "predrug_cld"
+        ),
       as.factor
     ) %>%
     mutate(
       drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
       stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
       stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
+      
+      # make drugline have a limit 5+ above 4
       drugline = ifelse(drugline > 4, 5, drugline),
       drugline = factor(drugline, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+")),
-      numdrugs = ifelse(numdrugs > 4, 5, numdrugs),
-      numdrugs = factor(numdrugs, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+"))
+      
+      # make numdrugs have a limit 3+ above 2
+      numdrugs = ifelse(numdrugs > 2, 3, numdrugs),
+      numdrugs = factor(numdrugs, levels = c(1, 2, 3), labels = c("1", "2", "3+"))
     )
+  
+  
+  
   
   
   if (dataset == "full.dataset") {return(cprd_dataset)}
   
-  
-  
-  #####################################################################################
-  #####################################################################################
-  
-  
-  if (dataset == "ps.dataset") {
-    
-    cprd_dataset <- cprd_dataset %>%
-      select(
-        patid, dstartdate,
-        # Outcome
-        stopdrug_3m_6mFU,
-        # Biomarkers
-        precreatinine_blood, 
-        prealt, pretotalcholesterol, predbp, presbp, prehba1c, 
-        preegfr, prebilirubin,
-        # Commorbidities
-        preckdstage, predrug_frailty_mild, predrug_frailty_moderate,
-        predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina,
-        predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd,
-        predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy,
-        predrug_fh_premature_cvd,
-        predrug_haem_cancer, predrug_heartfailure,
-        predrug_hypertension, predrug_ihd, predrug_myocardialinfarction,
-        predrug_neuropathy, predrug_otherneuroconditions, predrug_pad,
-        predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension,
-        predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis,
-        predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke,
-        predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
-        predrug_benignprostatehyperplasia, predrug_micturition_control,
-        predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
-        predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
-        predrug_dka, predrug_osteoporosis, predrug_unstableangina,
-        predrug_amputation,
-        hosp_admission_prev_year, hosp_admission_prev_year_count,
-        # Extra info
-        gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
-        ins_in_1_year, prebmi, smoking_cat, drugline, stopdrug_3m_3mFU_MFN_hist,
-        alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
-        CCI_index, drugline, numdrugs,
-        drugclass
-      ) %>%
-      drop_na() %>%
-      as.data.frame()
-    
-    
-    return(cprd_dataset)
-    
-    }
   
 }
 
