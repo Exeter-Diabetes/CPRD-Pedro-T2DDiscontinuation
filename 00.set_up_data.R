@@ -146,14 +146,39 @@ set_up_data <- function(
       # Statins use
       predrug_statins = ifelse(!is.na(predrug_latest_statins), 1, 0),
 
-      # Blood pressure medication
-      predrug_bloodmed = ifelse(!is.na(predrug_latest_ace_inhibitors) | 
-                                  !is.na(predrug_latest_beta_blockers) |
-                                  !is.na(predrug_latest_calcium_channel_blockers) |
-                                  !is.na(predrug_latest_thiazide_diuretics) |
-                                  !is.na(predrug_latest_loop_diuretics) |
-                                  !is.na(predrug_latest_ksparing_diuretics) |
-                                  !is.na(predrug_latest_arb)),
+      # Blood pressure medication in the last 6 months
+      predrug_bloodmed = ifelse(
+        (!is.na(predrug_latest_ace_inhibitors) & as.numeric(difftime(dstartdate, predrug_latest_ace_inhibitors)/30) < 6) |
+          (!is.na(predrug_latest_beta_blockers) & as.numeric(difftime(dstartdate, predrug_latest_beta_blockers)/30) < 6) |
+          (!is.na(predrug_latest_calcium_channel_blockers) & as.numeric(difftime(dstartdate, predrug_latest_calcium_channel_blockers)/30) < 6) |
+          (!is.na(predrug_latest_thiazide_diuretics) & as.numeric(difftime(dstartdate, predrug_latest_thiazide_diuretics)/30) < 6) |
+          (!is.na(predrug_latest_loop_diuretics) & as.numeric(difftime(dstartdate, predrug_latest_loop_diuretics)/30) < 6) |
+          (!is.na(predrug_latest_ksparing_diuretics) & as.numeric(difftime(dstartdate, predrug_latest_ksparing_diuretics)/30) < 6) |
+          (!is.na(predrug_latest_arb) & as.numeric(difftime(dstartdate, predrug_latest_arb)/30) < 6),
+        1,
+        0
+      ),
+      
+      # Cardiovascular event
+      predrug_cardio_event = ifelse(
+        !is.na(predrug_angina) | !is.na(predrug_myocardialinfarction) | !is.na(predrug_ihd) | !is.na(predrug_pad) | !is.na(predrug_revasc) | !is.na(predrug_stroke),
+        1,
+        0
+      ),
+      
+      # Heart problem event
+      predrug_heart_event = ifelse(
+        !is.na(predrug_heartfailure) | !is.na(predrug_hypertension),
+        1,
+        0
+      ),
+      
+      # Microvascular event
+      predrug_micro_event = ifelse(
+        !is.na(predrug_retinopathy) | !is.na(predrug_diabeticnephropathy) | !is.na(predrug_neuropathy),
+        1,
+        0
+      )
       
     )
   
@@ -177,12 +202,19 @@ set_up_data <- function(
       dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
       predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
       # Biomarkers
-      prehba1c, preegfr, prebmi, preldl, prehdl, pretriglyceride, prealt,
+      prehba1c, preegfr, prebmi, prealt, 
+      pretotalcholesterol,
+      # preldl, prehdl, pretriglyceride,
       # Comorbidities
       ## Hist of cardiovascular
+      predrug_cardio_event,
       predrug_angina, predrug_myocardialinfarction, predrug_ihd, predrug_pad,
-      predrug_revasc, predrug_stroke, predrug_heartfailure, predrug_hypertension,
+      predrug_revasc, predrug_stroke, 
+      ## Heart problems
+      predrug_heart_event,
+      predrug_heartfailure, predrug_hypertension,
       ### Microvascular
+      predrug_micro_event,
       predrug_retinopathy, predrug_diabeticnephropathy, predrug_neuropathy,
       ## CKD
       preckdstage, 
@@ -204,9 +236,14 @@ set_up_data <- function(
         "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
         # Comorbidities
         ## Hist of cardiovascular
+        "predrug_cardio_event",
         "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
-        "predrug_revasc", "predrug_stroke", "predrug_heartfailure", "predrug_hypertension",
+        "predrug_revasc", "predrug_stroke",
+        ## Heart problems
+        "predrug_heart_event",
+        "predrug_heartfailure", "predrug_hypertension",
         ### Microvascular
+        "predrug_micro_event",
         "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
         ## CKD
         "preckdstage", 
