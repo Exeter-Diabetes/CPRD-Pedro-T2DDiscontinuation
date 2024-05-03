@@ -137,6 +137,26 @@ set_up_data <- function(
   
   
   
+  
+  #####################################################################################
+  #####################################################################################
+  
+  # Remove patients without discontinuation data
+  
+  cprd_dataset <- cprd_dataset %>%
+    drop_na(stopdrug_3m_6mFU)
+  
+  ## Check patients after data
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients with discontinuation data:", nrow(cprd_dataset)))
+    print("#####################################")
+  }
+  
+  
+  
+  
+  
   # Create necessary variables
   
   ### selecting variables: Missing - number of chronic illnesses q: just sum over the vars listed below?
@@ -219,9 +239,7 @@ set_up_data <- function(
       ## CKD
       preckdstage, 
       ## CLD
-      predrug_cld,
-      
-       
+      predrug_cld
     ) %>%
     as.data.frame() %>%
     mutate(
