@@ -13,7 +13,6 @@ setwd("Samples/T2D_Discontinuation")
 source("code/00.set_up_data.R")
 
 # load libraries
-library(MASS)
 library(tidyverse)
 library(PSweight)
 
@@ -28,8 +27,9 @@ cprd_dataset <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "ps.dataset"
-)
+  dataset = "full.dataset"
+) %>%
+  drop_na()
 
 
 ########
@@ -39,53 +39,18 @@ cprd_dataset <- set_up_data(
 
 drug.pscores <- SumStat(
   ps.formula = as.formula(paste0("drugclass ~ ", paste0(c(
+    # Extra info
+    "dstartdate_dm_dur", "dstartdate_age", "drugline", "numdrugs", 
+    "smoking_cat", "imd2015_10", "gender",
     # Biomarkers
-    "precreatinine_blood",
-    "prealt", "pretotalcholesterol", "predbp", "presbp", "prehba1c",
-    "preegfr", "prebilirubin",
-    # # Commorbidities
-    "preckdstage", 
-    # "predrug_frailty_mild",
-    "predrug_primary_hhf", "predrug_af", "predrug_angina",
-    # "predrug_asthma", "predrug_bronchiectasis", "predrug_cld", "predrug_copd",
-    # "predrug_cysticfibrosis",
-    # "predrug_dementia",
-    "predrug_diabeticnephropathy",
-    # "predrug_fh_premature_cvd",
-    # "predrug_haem_cancer",
-    "predrug_heartfailure",
-    "predrug_hypertension", "predrug_ihd", "predrug_myocardialinfarction",
-    "predrug_neuropathy", "predrug_otherneuroconditions", "predrug_pad",
-    # "predrug_pulmonaryfibrosis",
-    # "predrug_pulmonaryhypertension",
-    "predrug_retinopathy", "predrug_revasc",
-    # "predrug_rheumatoidarthritis",
-    # "predrug_solid_cancer",
-    # "predrug_solidorgantransplant",
-    "predrug_stroke",
-    "predrug_tia",
-    # "predrug_anxiety_disorders", "predrug_medspecific_gi",
-    # "predrug_benignprostatehyperplasia", "predrug_micturition_control",
-    # "predrug_volume_depletion", "predrug_urinary_frequency",
-    "predrug_falls",
-    # "predrug_lowerlimbfracture", "predrug_incident_mi", "predrug_incident_stroke",
-    "predrug_dka", "predrug_osteoporosis", "predrug_unstableangina",
-    # "predrug_amputation",
-    "hosp_admission_prev_year",
-    # "hosp_admission_prev_year_count",
-    # # Extra info
-    "gender", 
-    # "prac_region", 
-    "ethnicity_5cat", "imd2015_10", "dm_diag_age",
-    "ins_in_1_year", "prebmi", "smoking_cat", "drugline", "numdrugs", "stopdrug_3m_3mFU_MFN_hist",
-    # "alcohol_cat", 
-    "dstartdate_age", "dstartdate_dm_dur", 
-    # "dstartmonth",
-    "CCI_index"
+    "prehba1c", "preegfr", "prebmi", "prealt", 
+    "pretotalcholesterol"
   ), collapse = "+"))),
   data = cprd_dataset,
   weight = c("overlap")
 )
+
+# summary(drug.pscores, metric = "ASD")
 
 saveRDS(drug.pscores, "results/PS_model/drug.pscores_model.rds")
 
@@ -116,49 +81,9 @@ saveRDS(ps.only_dataset, "results/PS_model/ps.dataset_lm_all.rds")
 
 # drug.pscores <- readRDS("results/PS_model/drug.pscores_model.rds")
 
-pdf("results/figures/covariate_balance.pdf", width = 12, height = 15)
+pdf("results/figures/covariate_balance.pdf", width = 12, height = 10)
 plot(drug.pscores)
 dev.off()
 
-
-
-
-
-
-
-
-
-# lm.hba1c <- lm(formula = as.formula(paste0("stopdrug_3m_6mFU ~ ", paste0(c(
-#   # Biomarkers
-#   "precreatinine_blood",
-#   "prealt", "pretotalcholesterol", "predbp", "presbp", "prehba1c",
-#   "preegfr", "prebilirubin",
-#   # Commorbidities
-#   "preckdstage", "predrug_frailty_mild", "predrug_frailty_moderate",
-#   "predrug_frailty_severe", "predrug_primary_hhf", "predrug_af", "predrug_angina",
-#   "predrug_asthma", "predrug_bronchiectasis", "predrug_cld", "predrug_copd",
-#   "predrug_cysticfibrosis", "predrug_dementia", "predrug_diabeticnephropathy",
-#   "predrug_fh_premature_cvd",
-#   "predrug_haem_cancer", "predrug_heartfailure",
-#   "predrug_hypertension", "predrug_ihd", "predrug_myocardialinfarction",
-#   "predrug_neuropathy", "predrug_otherneuroconditions", "predrug_pad",
-#   "predrug_pulmonaryfibrosis", "predrug_pulmonaryhypertension",
-#   "predrug_retinopathy", "predrug_revasc", "predrug_rheumatoidarthritis",
-#   "predrug_solid_cancer", "predrug_solidorgantransplant", "predrug_stroke",
-#   "predrug_tia", "predrug_anxiety_disorders", "predrug_medspecific_gi",
-#   "predrug_benignprostatehyperplasia", "predrug_micturition_control",
-#   "predrug_volume_depletion", "predrug_urinary_frequency", "predrug_falls",
-#   "predrug_lowerlimbfracture", "predrug_incident_mi", "predrug_incident_stroke",
-#   "predrug_dka", "predrug_osteoporosis", "predrug_unstableangina",
-#   "predrug_amputation",
-#   "hosp_admission_prev_year", "hosp_admission_prev_year_count",
-#   # Extra info
-#   "gender", "prac_region", "ethnicity_5cat", "imd2015_10", "dm_diag_age",
-#   "ins_in_1_year", "prebmi", "smoking_cat", "drugline",
-#   "alcohol_cat", "dstartdate_age", "dstartdate_dm_dur", "dstartmonth",
-#   "CCI_index"
-# ), collapse = "+"))),
-#                data = ps.dataset,
-#                weights = drug.pscores$pw.weights$overlap)
 
 
