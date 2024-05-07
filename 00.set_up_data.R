@@ -26,7 +26,7 @@ set_up_data <- function(
   if(!(diagnosis %in% c(TRUE, FALSE))) {stop("'diagnosis' must be TRUE or FALSE.")}
   # Check for 'dataset'
   if(missing(dataset)) {stop("'dataset' needs to be supplied.")}
-  if(!(dataset %in% c("full.dataset", "ps.dataset"))) {stop("'dataset' needs to be: full.dataset / ps.dataset / ")}
+  if(!(dataset %in% c("full.dataset"))) {stop("'dataset' needs to be: full.dataset")}
   
   
   ###############################################
@@ -181,21 +181,21 @@ set_up_data <- function(
       
       # Cardiovascular event
       predrug_cardio_event = ifelse(
-        !is.na(predrug_angina) | !is.na(predrug_myocardialinfarction) | !is.na(predrug_ihd) | !is.na(predrug_pad) | !is.na(predrug_revasc) | !is.na(predrug_stroke),
+        predrug_angina == 1 | predrug_myocardialinfarction == 1 | predrug_ihd == 1 | predrug_pad == 1 | predrug_revasc == 1 | predrug_stroke == 1,
         1,
         0
       ),
       
       # Heart problem event
       predrug_heart_event = ifelse(
-        !is.na(predrug_heartfailure) | !is.na(predrug_hypertension),
+        predrug_heartfailure == 1 | predrug_hypertension == 1,
         1,
         0
       ),
       
       # Microvascular event
       predrug_micro_event = ifelse(
-        !is.na(predrug_retinopathy) | !is.na(predrug_diabeticnephropathy) | !is.na(predrug_neuropathy),
+        predrug_retinopathy == 1 | predrug_diabeticnephropathy == 1 | predrug_neuropathy == 1,
         1,
         0
       )
