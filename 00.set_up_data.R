@@ -126,7 +126,7 @@ set_up_data <- function(
   # Remove patients with CKD stage 3 or above
   
   cprd_dataset <- cprd_dataset %>%
-    filter(preckdstage %in% c("stage_1", "stage_2"))
+    filter(preckdstage %in% c(NA, "stage_1", "stage_2"))
   
   ## Check patients after data
   if (isTRUE(diagnosis)) {
