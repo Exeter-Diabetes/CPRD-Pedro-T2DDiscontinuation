@@ -56,6 +56,22 @@ set_up_data <- function(
   
   ###############################################
   
+  # Keep patients with full prescribing data
+  cprd_dataset <- cprd_dataset %>%
+    filter(!is.na(dm_diag_date))
+  
+  
+  ## Check therapies being initiated
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients with full prescribing data:", nrow(cprd_dataset)))
+    print(table(cprd_dataset$drugclass))
+    print("#####################################")
+  }
+  
+  
+  ###############################################
+  
   # Keep patients above 2014-01-01
   
   cprd_dataset <- cprd_dataset %>%
@@ -109,7 +125,7 @@ set_up_data <- function(
   # Remove patients with HbA1c above 53
   
   cprd_dataset <- cprd_dataset %>%
-    filter(is.na(prehba1c) | prehba1c > 53)
+    filter(!is.na(prehba1c) & prehba1c > 53)
   
   
   ## Check patients after data
@@ -126,7 +142,8 @@ set_up_data <- function(
   # Remove patients with CKD stage 3 or above
   
   cprd_dataset <- cprd_dataset %>%
-    filter(preckdstage %in% c(NA, "stage_1", "stage_2"))
+    filter(preckdstage %in% c(NA, "stage_1", "stage_2")) %>%
+    mutate(preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage))
   
   ## Check patients after data
   if (isTRUE(diagnosis)) {
@@ -155,13 +172,14 @@ set_up_data <- function(
   
   
   
-  
-  
   # Create necessary variables
   
   ### selecting variables: Missing - number of chronic illnesses q: just sum over the vars listed below?
   cprd_dataset <- cprd_dataset %>%
     mutate(
+      
+      # Check if patient only had one prescription
+      only_one_prescription = ifelse(as.Date(dstartdate) == as.Date(dstopdate), 1, 0),
       
       # Statins use
       predrug_statins = ifelse(!is.na(predrug_latest_statins), 1, 0),
@@ -219,6 +237,7 @@ set_up_data <- function(
       # Drug taken
       drugclass, drugsubstances, drugcombo,
       # Extra info
+      only_one_prescription,
       dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
       predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
       # Biomarkers
@@ -250,6 +269,7 @@ set_up_data <- function(
         # Outcome
         "stopdrug_3m_6mFU",
         # Extra info
+        "only_one_prescription",
         "smoking_cat", "imd2015_10",
         "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
         # Comorbidities
@@ -263,14 +283,16 @@ set_up_data <- function(
         ### Microvascular
         "predrug_micro_event",
         "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
-        ## CKD
-        "preckdstage", 
+        # ## CKD
+        # "preckdstage", 
         ## CLD
         "predrug_cld"
         ),
       as.factor
     ) %>%
     mutate(
+      preckdstage = factor(preckdstage, levels = c("stage_1", "stage_0", "stage_2")),
+                           
       drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
       stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
       stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
