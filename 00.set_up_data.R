@@ -139,25 +139,6 @@ set_up_data <- function(
   #####################################################################################
   #####################################################################################
   
-  # Remove patients with CKD stage 3 or above
-  
-  cprd_dataset <- cprd_dataset %>%
-    filter(preckdstage %in% c(NA, "stage_1", "stage_2")) %>%
-    mutate(preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage))
-  
-  ## Check patients after data
-  if (isTRUE(diagnosis)) {
-    print("#####################################")
-    print(paste("Patients CKD stage 1 or 2:", nrow(cprd_dataset)))
-    print("#####################################")
-  }
-  
-  
-  
-  
-  #####################################################################################
-  #####################################################################################
-  
   # Remove patients without discontinuation data
   
   cprd_dataset <- cprd_dataset %>%
@@ -216,6 +197,13 @@ set_up_data <- function(
         predrug_retinopathy == 1 | predrug_diabeticnephropathy == 1 | predrug_neuropathy == 1,
         1,
         0
+      ),
+      
+      # Frailty proxy event
+      predrug_frailty_proxy = ifelse(
+        predrug_falls == 1 | predrug_lowerlimbfracture == 1,
+        1,
+        0
       )
       
     )
@@ -237,7 +225,7 @@ set_up_data <- function(
       # Drug taken
       drugclass, drugsubstances, drugcombo,
       # Extra info
-      only_one_prescription,
+      only_one_prescription, alcohol_cat,
       dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
       predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
       # Biomarkers
@@ -258,7 +246,9 @@ set_up_data <- function(
       ## CKD
       preckdstage, 
       ## CLD
-      predrug_cld
+      predrug_cld,
+      ## Frailty proxy
+      predrug_frailty_proxy
     ) %>%
     as.data.frame() %>%
     mutate(
@@ -269,7 +259,7 @@ set_up_data <- function(
         # Outcome
         "stopdrug_3m_6mFU",
         # Extra info
-        "only_one_prescription",
+        "only_one_prescription", "alcohol_cat",
         "smoking_cat", "imd2015_10",
         "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
         # Comorbidities
@@ -286,12 +276,15 @@ set_up_data <- function(
         # ## CKD
         # "preckdstage", 
         ## CLD
-        "predrug_cld"
+        "predrug_cld",
+        ## Frailty proxy
+        "predrug_frailty_proxy"
         ),
       as.factor
     ) %>%
     mutate(
-      preckdstage = factor(preckdstage, levels = c("stage_1", "stage_0", "stage_2")),
+      preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage),
+      preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5")),
                            
       drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
       stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
