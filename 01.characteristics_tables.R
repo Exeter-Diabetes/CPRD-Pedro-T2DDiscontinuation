@@ -217,6 +217,7 @@ vars <- c(
   # Drug taken
   "drugclass",
   # Extra info
+  "only_one_prescription",
   "dstartdate_dm_dur", "dstartdate_dm_dur_na", "dstartdate_age", "dstartdate_age_na", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
@@ -246,6 +247,7 @@ vars_cat <- c(
   # Outcome
   "stopdrug_3m_6mFU",
   # Extra info
+  "only_one_prescription",
   "dstartdate_dm_dur_na", "dstartdate_age_na", "smoking_cat", "imd2015_10",
   "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
