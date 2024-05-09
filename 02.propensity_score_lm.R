@@ -36,7 +36,6 @@ cprd_dataset <- set_up_data(
 ### Features for a propensity score
 ########
 
-
 drug.pscores <- SumStat(
   ps.formula = as.formula(paste0("drugclass ~ ", paste0(c(
     # Extra info
@@ -47,7 +46,7 @@ drug.pscores <- SumStat(
     "pretotalcholesterol"
   ), collapse = "+"))),
   data = cprd_dataset,
-  weight = c("overlap")
+  weight = c("overlap", "IPW")
 )
 
 # summary(drug.pscores, metric = "ASD")
@@ -68,7 +67,8 @@ ps.only_dataset <- data.frame(
   prop.score.SGLT2 = drug.pscores$propensity[,4],
   prop.score.SU = drug.pscores$propensity[,5],
   prop.score.TZD = drug.pscores$propensity[,6],
-  prop.score = drug.pscores$`ps.weights` %>% as.data.frame() %>% select(overlap) %>% unlist()
+  prop.score.overlap = drug.pscores$`ps.weights` %>% as.data.frame() %>% select(overlap) %>% unlist(),
+  prop.score.IPW = drug.pscores$`ps.weights` %>% as.data.frame() %>% select(IPW) %>% unlist()
 )
 
 saveRDS(ps.only_dataset, "results/PS_model/ps.dataset_lm_all.rds")
@@ -84,6 +84,5 @@ saveRDS(ps.only_dataset, "results/PS_model/ps.dataset_lm_all.rds")
 pdf("results/figures/covariate_balance.pdf", width = 12, height = 10)
 plot(drug.pscores)
 dev.off()
-
 
 
