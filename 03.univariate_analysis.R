@@ -316,7 +316,7 @@ lm_uni_TZD.alcohol_cat <- glm(stopdrug_3m_6mFU ~ alcohol_cat, data = cprd_datase
 drugs = c("Pooled", "DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD")
 coefficients <- data.frame(
   cbind(
-    variable = rep("Diabetes duration (per 10 years)", 7),
+    variable = rep("Diabetes duration (per SD)", 7),
     type = rep("Clinical features & biomarkers", 7),
     drug = drugs,
     coef = c(lm_uni_all.dstartdate_dm_dur$coef[2], lm_uni_DPP4.dstartdate_dm_dur$coef[2], lm_uni_GLP1.dstartdate_dm_dur$coef[2] , lm_uni_MFN.dstartdate_dm_dur$coef[2] , lm_uni_SGLT2.dstartdate_dm_dur$coef[2] , lm_uni_SU.dstartdate_dm_dur$coef[2] , lm_uni_TZD.dstartdate_dm_dur$coef[2]),
@@ -358,7 +358,7 @@ coefficients <- data.frame(
     data.frame(
       cbind(
         variable = rep("Ethnicity (ref White)"),
-        type = rep("Clinical features & biomarkers", 7),
+        type = rep("Behavioural", 7),
         drug = drugs,
         coef = c(lm_uni_all.ethnicity_5cat$coef[2], lm_uni_DPP4.ethnicity_5cat$coef[2], lm_uni_GLP1.ethnicity_5cat$coef[2] , lm_uni_MFN.ethnicity_5cat$coef[2] , lm_uni_SGLT2.ethnicity_5cat$coef[2] , lm_uni_SU.ethnicity_5cat$coef[2] , lm_uni_TZD.ethnicity_5cat$coef[2]),
         LCI = c(confint(lm_uni_all.ethnicity_5cat)[2,1], confint(lm_uni_DPP4.ethnicity_5cat)[2,1], confint(lm_uni_GLP1.ethnicity_5cat)[2,1] , confint(lm_uni_MFN.ethnicity_5cat)[2,1] , confint(lm_uni_SGLT2.ethnicity_5cat)[2,1] , confint(lm_uni_SU.ethnicity_5cat)[2,1] , confint(lm_uni_TZD.ethnicity_5cat)[2,1]),
@@ -367,7 +367,7 @@ coefficients <- data.frame(
     ),
     data.frame(
       cbind(
-        variable = rep("Age (per 10 years)", 7),
+        variable = rep("Age (per SD)", 7),
         type = rep("Clinical features & biomarkers", 7),
         drug = drugs,
         coef = c(lm_uni_all.dstartdate_age$coef[2], lm_uni_DPP4.dstartdate_age$coef[2], lm_uni_GLP1.dstartdate_age$coef[2] , lm_uni_MFN.dstartdate_age$coef[2] , lm_uni_SGLT2.dstartdate_age$coef[2] , lm_uni_SU.dstartdate_age$coef[2] , lm_uni_TZD.dstartdate_age$coef[2]),
@@ -377,7 +377,7 @@ coefficients <- data.frame(
     ),
     data.frame(
       cbind(
-        variable = rep("HbA1c (per 10mmol/mol)", 7),
+        variable = rep("HbA1c (per SD)", 7),
         type = rep("Clinical features & biomarkers", 7),
         drug = drugs,
         coef = c(lm_uni_all.prehba1c$coef[2], lm_uni_DPP4.prehba1c$coef[2], lm_uni_GLP1.prehba1c$coef[2] , lm_uni_MFN.prehba1c$coef[2] , lm_uni_SGLT2.prehba1c$coef[2] , lm_uni_SU.prehba1c$coef[2] , lm_uni_TZD.prehba1c$coef[2]),
@@ -397,7 +397,7 @@ coefficients <- data.frame(
     ),
     data.frame(
       cbind(
-        variable = rep("BMI (per 5kg/m^2)", 7),
+        variable = rep("BMI (per SD)", 7),
         type = rep("Clinical features & biomarkers", 7),
         drug = drugs,
         coef = c(lm_uni_all.prebmi$coef[2], lm_uni_DPP4.prebmi$coef[2], lm_uni_GLP1.prebmi$coef[2] , lm_uni_MFN.prebmi$coef[2] , lm_uni_SGLT2.prebmi$coef[2] , lm_uni_SU.prebmi$coef[2] , lm_uni_TZD.prebmi$coef[2]),
@@ -587,7 +587,7 @@ wrap_plots(
   ncol = 1, nrow = 3
   
 ) + 
-  plot_layout(guides = "collect", height = c(5, 9, 6), axis_titles = "collect", axes = "collect") +
+  plot_layout(guides = "collect", height = c(6, 8, 6), axis_titles = "collect", axes = "collect") +
   plot_annotation(tag_levels = list(c("Behavioural", "Clinical features & biomarkers", "Comorbidities"))) & 
   theme(
     legend.direction = "vertical",
