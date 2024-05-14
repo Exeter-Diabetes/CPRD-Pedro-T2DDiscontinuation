@@ -194,12 +194,26 @@ probabilities.only_dataset <- data.frame(
   pred.overlap.SU = predict(lm_uber_model.overlap, newdata = cprd_dataset %>% mutate(drugclass = factor("SU", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.overlap.TZD = predict(lm_uber_model.overlap, newdata = cprd_dataset %>% mutate(drugclass = factor("TZD", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   
+  pred.overlap_adjust.MFN = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("MFN", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.overlap_adjust.GLP1 = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("GLP1", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.overlap_adjust.DPP4 = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("DPP4", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.overlap_adjust.SGLT2 = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("SGLT2", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.overlap_adjust.SU = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("SU", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.overlap_adjust.TZD = predict(lm_uber_model.overlap_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("TZD", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  
   pred.IPW.MFN = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("MFN", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.IPW.GLP1 = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("GLP1", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.IPW.DPP4 = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("DPP4", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.IPW.SGLT2 = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("SGLT2", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.IPW.SU = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("SU", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.IPW.TZD = predict(lm_uber_model.IPW, newdata = cprd_dataset %>% mutate(drugclass = factor("TZD", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  
+  pred.IPW_adjust.MFN = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("MFN", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.IPW_adjust.GLP1 = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("GLP1", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.IPW_adjust.DPP4 = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("DPP4", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.IPW_adjust.SGLT2 = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("SGLT2", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.IPW_adjust.SU = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("SU", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
+  pred.IPW_adjust.TZD = predict(lm_uber_model.IPW_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("TZD", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   
   pred.no_weight.MFN = predict(lm_uber_model.no_weight_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("MFN", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
   pred.no_weight.GLP1 = predict(lm_uber_model.no_weight_adjust, newdata = cprd_dataset %>% mutate(drugclass = factor("GLP1", levels = levels(cprd_dataset$drugclass))) %>% as.data.frame(), type = "response"),
