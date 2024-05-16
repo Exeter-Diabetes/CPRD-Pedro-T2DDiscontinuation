@@ -443,9 +443,6 @@ drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD")
 
 # dstartdate_dm_dur
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("dstartdate_dm_dur"), ~(scale(.) %>% as.vector))
-
 dstartdate_dm_dur_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "dstartdate_dm_dur", variable_name = "Diabetes duration (per SD)", type = "Clinical features & biomarkers"
@@ -454,9 +451,6 @@ dstartdate_dm_dur_sum <- univariate_analysis(
 
 # dstartdate_age
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("dstartdate_age"), ~(scale(.) %>% as.vector))
-
 dstartdate_age_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "dstartdate_age", variable_name = "Age (per SD)", type = "Clinical features & biomarkers"
@@ -464,9 +458,6 @@ dstartdate_age_sum <- univariate_analysis(
 
 
 # prehba1c
-
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("prehba1c"), ~(scale(.) %>% as.vector))
 
 prehba1c_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
@@ -479,6 +470,7 @@ prehba1c_sum <- univariate_analysis(
 cprd <- cprd_dataset %>%
   mutate_at(c("preegfr"), ~(scale(.) %>% as.vector))
 
+
 preegfr_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "preegfr", variable_name = "eGFR (per SD)", type = "Clinical features & biomarkers"
@@ -487,18 +479,12 @@ preegfr_sum <- univariate_analysis(
 
 # prebmi
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("prebmi"), ~(scale(.) %>% as.vector))
-
 prebmi_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "prebmi", variable_name = "BMI (per SD)", type = "Clinical features & biomarkers"
 )
 
 # prealt
-
-cprd <- cprd_dataset %>%
-  mutate_at(c("prealt"), ~(scale(.) %>% as.vector))
 
 prealt_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
@@ -507,9 +493,6 @@ prealt_sum <- univariate_analysis(
 
 
 # pretotalcholesterol
-
-cprd <- cprd_dataset %>%
-  mutate_at(c("pretotalcholesterol"), ~(scale(.) %>% as.vector))
 
 pretotalcholesterol_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
@@ -551,9 +534,6 @@ stopdrug_3m_3mFU_MFN_hist_sum <- univariate_analysis(
 
 # ethnicity
 
-cprd_dataset <- cprd_dataset %>%
-  mutate(ethnicity_5cat = factor(ethnicity_5cat, levels = c(0, 1, 2, 3, 4), labels = c("White", "Other", "Other" , "Other" , "Other")))
-
 ethnicity_5cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "ethnicity_5cat", variable_name = "Ethnicity (ref White)", type = "Behavioural"
@@ -562,9 +542,6 @@ ethnicity_5cat_sum <- univariate_analysis(
 
 # smoking_cat
 
-cprd_dataset <- cprd_dataset %>%
-  mutate(smoking_cat = factor(smoking_cat, levels = c("Active smoker", "Ex-smoker", "Non-smoker"), labels = c("Active smoker", "Other", "Other")))
-
 smoking_cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
   variable = "smoking_cat", variable_name = "Smoking (ref Active Smoker)", type = "Behavioural"
@@ -572,9 +549,6 @@ smoking_cat_sum <- univariate_analysis(
 
 
 # alcohol_cat
-
-cprd_dataset <- cprd_dataset %>%
-  mutate(alcohol_cat = factor(alcohol_cat, levels = c("Excess", "Harmful", "None", "Within limits"), labels = c("Excess/Harmful", "Excess/Harmful", "Within limits/None", "Within limits/None")))
 
 alcohol_cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
@@ -607,9 +581,6 @@ predrug_micro_event_sum <- univariate_analysis(
 
 
 # preckdstage
-
-cprd_dataset <- cprd_dataset %>%
-  mutate(preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage 0/1/2", "stage 0/1/2", "stage 0/1/2", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5")))
 
 preckdstage_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
@@ -759,9 +730,6 @@ drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD")
 
 # dstartdate_dm_dur
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("dstartdate_dm_dur"), ~(scale(.) %>% as.vector))
-
 dstartdate_dm_dur_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
   variable = "dstartdate_dm_dur", variable_name = "Diabetes duration (per SD)", type = "Clinical features & biomarkers"
@@ -769,9 +737,6 @@ dstartdate_dm_dur_sum <- univariate_analysis(
 
 
 # dstartdate_age
-
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("dstartdate_age"), ~(scale(.) %>% as.vector))
 
 dstartdate_age_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
@@ -781,9 +746,6 @@ dstartdate_age_sum <- univariate_analysis(
 
 # prehba1c
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("prehba1c"), ~(scale(.) %>% as.vector))
-
 prehba1c_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
   variable = "prehba1c", variable_name = "HbA1c (per SD)", type = "Clinical features & biomarkers"
@@ -791,9 +753,6 @@ prehba1c_sum <- univariate_analysis(
 
 
 # preegfr
-
-cprd <- cprd_dataset %>%
-  mutate_at(c("preegfr"), ~(scale(.) %>% as.vector))
 
 preegfr_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
@@ -803,18 +762,12 @@ preegfr_sum <- univariate_analysis(
 
 # prebmi
 
-cprd_dataset <- cprd_dataset %>%
-  mutate_at(c("prebmi"), ~(scale(.) %>% as.vector))
-
 prebmi_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
   variable = "prebmi", variable_name = "BMI (per SD)", type = "Clinical features & biomarkers"
 )
 
 # prealt
-
-cprd <- cprd_dataset %>%
-  mutate_at(c("prealt"), ~(scale(.) %>% as.vector))
 
 prealt_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
@@ -823,9 +776,6 @@ prealt_sum <- univariate_analysis(
 
 
 # pretotalcholesterol
-
-cprd <- cprd_dataset %>%
-  mutate_at(c("pretotalcholesterol"), ~(scale(.) %>% as.vector))
 
 pretotalcholesterol_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
@@ -867,9 +817,6 @@ stopdrug_3m_3mFU_MFN_hist_sum <- univariate_analysis(
 
 # ethnicity
 
-cprd_dataset <- cprd_dataset %>%
-  mutate(ethnicity_5cat = factor(ethnicity_5cat, levels = c(0, 1, 2, 3, 4), labels = c("White", "Other", "Other" , "Other" , "Other")))
-
 ethnicity_5cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_3m_6mFU", 
   variable = "ethnicity_5cat", variable_name = "Ethnicity (ref White)", type = "Behavioural"
@@ -878,9 +825,6 @@ ethnicity_5cat_sum <- univariate_analysis(
 
 # smoking_cat
 
-cprd_dataset <- cprd_dataset %>%
-  mutate(smoking_cat = factor(smoking_cat, levels = c("Active smoker", "Ex-smoker", "Non-smoker"), labels = c("Active smoker", "Other", "Other")))
-
 smoking_cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
   variable = "smoking_cat", variable_name = "Smoking (ref Active Smoker)", type = "Behavioural"
@@ -888,9 +832,6 @@ smoking_cat_sum <- univariate_analysis(
 
 
 # alcohol_cat
-
-cprd_dataset <- cprd_dataset %>%
-  mutate(alcohol_cat = factor(alcohol_cat, levels = c("Excess", "Harmful", "None", "Within limits"), labels = c("Excess/Harmful", "Excess/Harmful", "Within limits/None", "Within limits/None")))
 
 alcohol_cat_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
@@ -923,9 +864,6 @@ predrug_micro_event_sum <- univariate_analysis(
 
 
 # preckdstage
-
-cprd_dataset <- cprd_dataset %>%
-  mutate(preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage 0/1/2", "stage 0/1/2", "stage 0/1/2", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5")))
 
 preckdstage_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
