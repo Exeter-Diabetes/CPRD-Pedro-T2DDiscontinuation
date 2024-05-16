@@ -214,6 +214,8 @@ cprd_tables <- cprd_dataset %>%
 vars <- c(
   # Outcome
   "stopdrug_3m_6mFU",
+  "stopdrug_6m_6mFU",
+  "stopdrug_12m_6mFU",
   # Drug taken
   "drugclass",
   # Extra info
@@ -248,6 +250,8 @@ vars <- c(
 vars_cat <- c(
   # Outcome
   "stopdrug_3m_6mFU",
+  "stopdrug_6m_6mFU",
+  "stopdrug_12m_6mFU",
   # Extra info
   "only_one_prescription", "alcohol_cat",
   "dstartdate_dm_dur_na", "dstartdate_age_na", "smoking_cat", "imd2015_10",
