@@ -26,7 +26,7 @@ set_up_data <- function(
   if(!(diagnosis %in% c(TRUE, FALSE))) {stop("'diagnosis' must be TRUE or FALSE.")}
   # Check for 'dataset'
   if(missing(dataset)) {stop("'dataset' needs to be supplied.")}
-  if(!(dataset %in% c("full.dataset"))) {stop("'dataset' needs to be: full.dataset")}
+  if(!(dataset %in% c("full.dataset", "3m.disc.dataset" , "6m.disc.dataset", "12m.disc.dataset"))) {stop("'dataset' needs to be: full.dataset / 3m.disc.dataset / 6m.disc.dataset / 12m.disc.dataset")}
   
   
   ###############################################
@@ -136,22 +136,6 @@ set_up_data <- function(
   }
   
   
-  #####################################################################################
-  #####################################################################################
-  
-  # Remove patients without discontinuation data
-  
-  cprd_dataset <- cprd_dataset %>%
-    drop_na(stopdrug_3m_6mFU)
-  
-  ## Check patients after data
-  if (isTRUE(diagnosis)) {
-    print("#####################################")
-    print(paste("Patients with discontinuation data:", nrow(cprd_dataset)))
-    print("#####################################")
-  }
-  
-  
   
   # Create necessary variables
   
@@ -222,6 +206,8 @@ set_up_data <- function(
       patid, dstartdate,
       # Outcome
       stopdrug_3m_6mFU,
+      stopdrug_6m_6mFU,
+      stopdrug_12m_6mFU,
       # Drug taken
       drugclass, drugsubstances, drugcombo,
       # Extra info
@@ -300,11 +286,98 @@ set_up_data <- function(
     )
   
   
-  
-  
-  
   if (dataset == "full.dataset") {return(cprd_dataset)}
   
+  
+  
+  
+  #####################################################################################
+  #####################################################################################
+  
+  # Remove patients without discontinuation data
+  
+  if (dataset %in% c("3m.disc.dataset", "3m.disc.dataset.dev", "3m.disc.dataset.val")) {
+    
+    cprd_dataset <- cprd_dataset %>%
+      drop_na(stopdrug_3m_6mFU) %>%
+      mutate(row = 1:n())
+    
+    if (dataset == "3m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+    
+    set.seed(123)
+    cprd_dataset.dev <- cprd_dataset %>%
+      sample_frac(.7)
+    
+    cprd_dataset.val <- cprd_dataset %>%
+      filter(!(row %in% cprd_dataset.dev$row))
+    
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with 3m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+      print("#####################################")
+    }
+    
+    if (dataset == "3m.disc.dataset.dev") {return(cprd_dataset.dev)}
+    if (dataset == "3m.disc.dataset.val") {return(cprd_dataset.val)}
+    
+    
+  } else if (dataset %in% c("6m.disc.dataset", "6m.disc.dataset.dev", "6m.disc.dataset.val")) {
+    
+    cprd_dataset <- cprd_dataset %>%
+      drop_na(stopdrug_6m_6mFU) %>%
+      mutate(row = 1:n())
+    
+    if (dataset == "6m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+    
+    set.seed(123)
+    cprd_dataset.dev <- cprd_dataset %>%
+      sample_frac(.7)
+    
+    cprd_dataset.val <- cprd_dataset %>%
+      filter(!(row %in% cprd_dataset.dev$row))
+    
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with 6m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+      print("#####################################")
+    }
+    
+    if (dataset == "6m.disc.dataset.dev") {return(cprd_dataset.dev)}
+    if (dataset == "6m.disc.dataset.val") {return(cprd_dataset.val)}
+    
+    
+  } else if (dataset %in% c("12m.disc.dataset", "12m.disc.dataset.dev", "12m.disc.dataset.val")) {
+    
+    cprd_dataset <- cprd_dataset %>%
+      drop_na(stopdrug_12m_6mFU) %>%
+      mutate(row = 1:n())
+    
+    if (dataset == "12m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+    
+    set.seed(123)
+    cprd_dataset.dev <- cprd_dataset %>%
+      sample_frac(.7)
+    
+    cprd_dataset.val <- cprd_dataset %>%
+      filter(!(row %in% cprd_dataset.dev$row))
+    
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with 12m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+      print("#####################################")
+    }
+    
+    if (dataset == "12m.disc.dataset.dev") {return(cprd_dataset.dev)}
+    if (dataset == "12m.disc.dataset.val") {return(cprd_dataset.val)}
+    
+    
+  }
   
 }
 
