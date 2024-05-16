@@ -26,7 +26,13 @@ set_up_data <- function(
   if(!(diagnosis %in% c(TRUE, FALSE))) {stop("'diagnosis' must be TRUE or FALSE.")}
   # Check for 'dataset'
   if(missing(dataset)) {stop("'dataset' needs to be supplied.")}
-  if(!(dataset %in% c("full.dataset", "3m.disc.dataset" , "6m.disc.dataset", "12m.disc.dataset"))) {stop("'dataset' needs to be: full.dataset / 3m.disc.dataset / 6m.disc.dataset / 12m.disc.dataset")}
+  if(!(dataset %in% c("full.dataset",
+                      "3m.disc.dataset", "3m.disc.dataset.dev", "3m.disc.dataset.val", 
+                      "6m.disc.dataset", "6m.disc.dataset.dev", "6m.disc.dataset.val", 
+                      "12m.disc.dataset", "12m.disc.dataset.dev", "12m.disc.dataset.val"
+  ))) {
+    stop("'dataset' needs to be: full.dataset / 3m.disc.dataset / 3m.disc.dataset.dev / 3m.disc.dataset.val / 6m.disc.dataset / 6m.disc.dataset.dev / 6m.disc.dataset.val / 12m.disc.dataset / 12m.disc.dataset.dev / 12m.disc.dataset.val")
+  }
   
   
   ###############################################
@@ -121,7 +127,7 @@ set_up_data <- function(
   
   #####################################################################################
   #####################################################################################
-
+  
   # Remove patients with HbA1c above 53
   
   cprd_dataset <- cprd_dataset %>%
@@ -148,7 +154,7 @@ set_up_data <- function(
       
       # Statins use
       predrug_statins = ifelse(!is.na(predrug_latest_statins), 1, 0),
-
+      
       # Blood pressure medication in the last 6 months
       predrug_bloodmed = ifelse(
         (!is.na(predrug_latest_ace_inhibitors) & as.numeric(difftime(dstartdate, predrug_latest_ace_inhibitors)/30) < 6) |
@@ -267,13 +273,13 @@ set_up_data <- function(
         "predrug_cld",
         ## Frailty proxy
         "predrug_frailty_proxy"
-        ),
+      ),
       as.factor
     ) %>%
     mutate(
       preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage),
       preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5")),
-                           
+      
       drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
       stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
       stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
