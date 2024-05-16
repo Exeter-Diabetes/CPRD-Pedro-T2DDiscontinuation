@@ -26,8 +26,8 @@ library(PSweight)
 cprd_dataset <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
-  therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "full.dataset"
+  therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
+  dataset = "3m.disc.dataset"
 ) %>%
   drop_na()
 
