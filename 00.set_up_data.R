@@ -244,6 +244,8 @@ set_up_data <- function(
       c(
         # Outcome
         "stopdrug_3m_6mFU",
+        "stopdrug_6m_6mFU",
+        "stopdrug_12m_6mFU",
         # Extra info
         "only_one_prescription", "alcohol_cat",
         "smoking_cat", "imd2015_10",
