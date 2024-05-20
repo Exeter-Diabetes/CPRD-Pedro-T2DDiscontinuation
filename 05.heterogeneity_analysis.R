@@ -90,7 +90,7 @@ cprd_dataset.val <- cprd_dataset.val %>%
 ###############################################################################
 
 
-calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random", n_bootstrap = 100) {
+calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random", n_bootstrap = 10) {
   
   # output object
   final_dataset <- NULL
@@ -185,81 +185,61 @@ calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable =
         
       }
       
-      # if (!is.null(weight.variable)) {
-      #   
-      #   if (matching == FALSE) {
-      #     
-      #     # fit linear regression for decile in the matched dataset
-      #     models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.new, weights = propensity.score, family = quasibinomial())
-      #     
-      #   } else {
-      #     
-      #     # model if propensity scores are provided
-      #     matching_package_result <- MatchIt::matchit(
-      #       formula = formula("drugclass ~ prehba1c"), # shouldn't be used since we are specifying 'distance' (propensity scores)
-      #       data = data.new[which(data.new[,"group"] == i),], # select people in the quantile
-      #       method = "nearest",
-      #       distance = data.new[which(data.new[,"group"] == i),"propensity.score"],
-      #       replace = replace,
-      #       m.order = order,
-      #       caliper = caliper,
-      #       mahvars = NULL, estimand = "ATT", exact = NULL, antiexact = NULL, discard = "none", reestimate = FALSE, s.weights = NULL, std.caliper = TRUE, ratio = 1, verbose = FALSE, include.obj = FALSE,
-      #     )
-      #     
-      #     # fit linear regression for decile in the matched dataset
-      #     models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.new, weights = matching_package_result$weights, family = binomial())
-      #     
-      #   }
-      #   
-      # } else {
-      #   
-      #   # fit linear regression for decile in the matched dataset
-      #   models[[i]] <- glm(as.formula(formula),data=data.new, family = binomial())
-      #   
-      # }
       
-      # iterate through bootstrapped datasets to get CI
-      
-      ## WRONG: bootstrap before model being run
-      
+      # collect bootstrapped values
       bootstrap_differences <- NULL
+      
       
       for (bootstrap_i in 1:n_bootstrap) {
         
-        # bootstrap dataset
-        data.bootstrap <- data.new[sample(nrow(data.new), size = nrow(data.new), replace = TRUE),] 
-        
-        
-        if (!is.null(weight.variable)) {
+        if (matching == FALSE) {
           
-          if (matching == FALSE) {
+          # bootstrap dataset
+          data.bootstrap <- data.new[sample(nrow(data.new), size = nrow(data.new), replace = TRUE),] 
+          
+          if (!is.null(weight.variable)) {
             
             # fit linear regression for decile in the matched dataset
             models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.bootstrap, weights = propensity.score, family = quasibinomial())
             
           } else {
             
+            # fit linear regression for decile in the matched dataset
+            models[[i]] <- glm(as.formula(formula),data=data.bootstrap, family = binomial())
+            
+          }
+          
+        } else {
+          
+          if (!is.null(weight.variable)) {
+            
             # model if propensity scores are provided
             matching_package_result <- MatchIt::matchit(
               formula = formula("drugclass ~ prehba1c"), # shouldn't be used since we are specifying 'distance' (propensity scores)
-              data = data.bootstrap[which(data.bootstrap[,"group"] == i),], # select people in the quantile
+              data = data.new[which(data.new[,"group"] == i),], # select people in the quantile
               method = "nearest",
-              distance = data.bootstrap[which(data.bootstrap[,"group"] == i),"propensity.score"],
+              distance = data.new[which(data.new[,"group"] == i),"propensity.score"],
               replace = replace,
               m.order = order,
               caliper = caliper,
               mahvars = NULL, estimand = "ATT", exact = NULL, antiexact = NULL, discard = "none", reestimate = FALSE, s.weights = NULL, std.caliper = TRUE, ratio = 1, verbose = FALSE, include.obj = FALSE,
             )
             
+            data.match <- data.new %>%
+              mutate(weights.matching = matching_package_result$weights) %>%
+              filter(weights.matching > 0)
+            
+            # bootstrap dataset
+            data.bootstrap <- data.match[sample(nrow(data.match), size = nrow(data.match), replace = TRUE),] 
+            
             # fit linear regression for decile in the matched dataset
-            models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.bootstrap, weights = matching_package_result$weights, family = binomial())
+            models[[i]] <- glm(as.formula(formula),data=data.bootstrap, family = binomial())
+            
+          } else {
+            
+            stop("Please provide 'weight.variable' for matching.")
             
           }
-          
-        } else {
-          
-          # fit linear regression for decile in the matched dataset
-          models[[i]] <- glm(as.formula(formula),data=data.bootstrap, family = binomial())
           
         }
         
@@ -321,19 +301,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 50)
+ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.no_adj_all_drugs, "results/Heterogeneity/ATE.var_adj.no_adj_all_drugs.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 50)
+ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.overlap_match_all_drugs, "results/Heterogeneity/ATE.var_adj.overlap_match_all_drugs.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 50)
+ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.IPW_match_all_drugs, "results/Heterogeneity/ATE.var_adj.IPW_match_all_drugs.rds")
 
@@ -503,19 +483,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 50)
+ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.no_adj_2nd_line, "results/Heterogeneity/ATE.var_adj.no_adj_2nd_line.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 50)
+ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.overlap_match_2nd_line, "results/Heterogeneity/ATE.var_adj.overlap_match_2nd_line.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 50)
+ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.IPW_match_2nd_line, "results/Heterogeneity/ATE.var_adj.IPW_match_2nd_line.rds")
 
@@ -536,6 +516,19 @@ ATE.var_adj.no_adj_2nd_line %>%
   scale_y_continuous("Decile Average Treatment Discontinuation Difference (no adjustment)", labels = scales::percent, breaks = seq(-1, 1, 0.02)) +
   ggtitle("2nd line Therapy discontinuation heterogeneity (no adjustment)") +
   facet_wrap(~Type, scales = "free") +
+  theme_bw()
+
+ATE.var_adj.no_adj_2nd_line %>%
+  ggplot() +
+  geom_abline(aes(intercept = 0, slope = 1), colour = "red") +
+  geom_hline(aes(yintercept = 0), colour = "grey") +
+  geom_vline(aes(xintercept = 0), colour = "grey") +
+  geom_point(aes(y = obs, x = diff.pred)) +
+  geom_errorbar(aes(y = obs, ymin = lci, ymax = uci, x = diff.pred)) +
+  scale_x_continuous("Predicted Conditional Average Treatment Discontinuation Difference", labels = scales::percent, breaks = seq(-1, 1, 0.02)) +
+  scale_y_continuous("Decile Average Treatment Discontinuation Difference (no adjustment)", labels = scales::percent, breaks = seq(-1, 1, 0.02)) +
+  ggtitle("2nd line Therapy discontinuation heterogeneity (no adjustment)") +
+  facet_wrap(~Type, scales = "fixed") +
   theme_bw()
 
 ATE.var_adj.overlap_match_2nd_line %>%
