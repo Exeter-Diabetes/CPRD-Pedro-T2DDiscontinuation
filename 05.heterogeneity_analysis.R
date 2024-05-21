@@ -9,7 +9,7 @@
 setwd("Samples/T2D_Discontinuation")
 
 # load functions
-source("code/00.set_up_data.R")
+source("code/00.set_up_data_and_functions.R")
 
 # load libraries
 library(tidyverse)
@@ -90,196 +90,6 @@ cprd_dataset.val <- cprd_dataset.val %>%
 ###############################################################################
 
 
-calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random", n_bootstrap = 10) {
-  
-  # output object
-  final_dataset <- NULL
-  
-  # calculation of all drug combinations (from provided)
-  combinations_matrix <- combn(drugs, 2)
-  
-  # number of combinations
-  n_comb <- ncol(combinations_matrix)
-  
-  # iterate through each combinations
-  for (comb_i in 1:n_comb) {
-    
-    # current drugs being analysed
-    current_drugs <- combinations_matrix[,comb_i]
-    
-    # collect only the drugs we are interested
-    data.initial <- data %>%
-      filter(drugclass %in% current_drugs) %>%
-      rename(
-        "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-        "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
-      ) %>%
-      mutate(diff = pred.drug_1 - pred.drug_2) %>%
-      mutate(group = ntile(diff, ntiles))
-    
-    # if weight variable is provided, rename propensity score variable to default
-    if (!is.null(weight.variable)) {
-      data.initial <- data.initial %>%
-        rename(
-          "propensity.score" = paste0("prop.score.", weight.variable)
-        )
-    }
-    
-    # calculate the summary statistics for each ntile
-    predicted_treatment_effect <- data.initial %>%
-      plyr::ddply("group", dplyr::summarise,
-                  N = length(diff),
-                  diff.pred = mean(diff)) %>%
-      left_join(
-        data.initial %>%
-          group_by(group) %>%
-          mutate(
-            events = sum(as.numeric(stopdrug_3m_6mFU) - 1, na.rm = TRUE)
-          ) %>%
-          ungroup() %>%
-          select(group, events) %>%
-          unique() %>%
-          mutate(
-            drug_1 = current_drugs[1],
-            drug_2 = current_drugs[2]
-          ),
-        by = c("group")
-      )
-    
-    
-    # maximum number of deciles being tested
-    quantiles <- length(unique(data.initial[,"group"]))
-    
-    # create lists with results
-    mnumber = c(1:quantiles)
-    models  <- as.list(1:quantiles)
-    obs <- vector(); lci <- vector(); uci <- vector()
-    
-    # iterate through deciles
-    for (i in mnumber) {
-      
-      # do this differently if "group" is categorical
-      if (is.factor(data.initial[,"group"])) {
-        # dataset being used in this quantile
-        data.new <- data.initial[data.initial[,"group"] == levels(data.initial[,"group"])[i],]
-      } else {
-        # dataset being used in this quantile
-        data.new <- data.initial[data.initial[,"group"] == i,]
-      }
-      
-      # If breakdown is not given (breakdown = variable to adjust by)
-      if (is.null(breakdown)) {
-        
-        # formula
-        formula <- "stopdrug_3m_6mFU ~ factor(drugclass)"
-        
-      } else {
-        
-        # variables used in adjustment
-        breakdown_adjust <- breakdown
-        # variables with only one variable represented
-        checker <- which(sapply(data.new[,breakdown_adjust], function(col) length(unique(col))) > 1)
-        
-        # formula
-        formula <- paste0("stopdrug_3m_6mFU ~ factor(drugclass) +", paste(breakdown_adjust[checker], collapse = "+"))
-        
-      }
-      
-      
-      # collect bootstrapped values
-      bootstrap_differences <- NULL
-      
-      
-      for (bootstrap_i in 1:n_bootstrap) {
-        
-        if (matching == FALSE) {
-          
-          # bootstrap dataset
-          data.bootstrap <- data.new[sample(nrow(data.new), size = nrow(data.new), replace = TRUE),] 
-          
-          if (!is.null(weight.variable)) {
-            
-            # fit linear regression for decile in the matched dataset
-            models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.bootstrap, weights = propensity.score, family = quasibinomial())
-            
-          } else {
-            
-            # fit linear regression for decile in the matched dataset
-            models[[i]] <- glm(as.formula(formula),data=data.bootstrap, family = binomial())
-            
-          }
-          
-        } else {
-          
-          if (!is.null(weight.variable)) {
-            
-            # model if propensity scores are provided
-            matching_package_result <- MatchIt::matchit(
-              formula = formula("drugclass ~ prehba1c"), # shouldn't be used since we are specifying 'distance' (propensity scores)
-              data = data.new[which(data.new[,"group"] == i),], # select people in the quantile
-              method = "nearest",
-              distance = data.new[which(data.new[,"group"] == i),"propensity.score"],
-              replace = replace,
-              m.order = order,
-              caliper = caliper,
-              mahvars = NULL, estimand = "ATT", exact = NULL, antiexact = NULL, discard = "none", reestimate = FALSE, s.weights = NULL, std.caliper = TRUE, ratio = 1, verbose = FALSE, include.obj = FALSE,
-            )
-            
-            data.match <- data.new %>%
-              mutate(weights.matching = matching_package_result$weights) %>%
-              filter(weights.matching > 0)
-            
-            # bootstrap dataset
-            data.bootstrap <- data.match[sample(nrow(data.match), size = nrow(data.match), replace = TRUE),] 
-            
-            # fit linear regression for decile in the matched dataset
-            models[[i]] <- glm(as.formula(formula),data=data.bootstrap, family = binomial())
-            
-          } else {
-            
-            stop("Please provide 'weight.variable' for matching.")
-            
-          }
-          
-        }
-        
-        # make predictions
-        preds.drug1 <- predict(models[[i]], newdata = data.bootstrap %>% filter(drugclass == current_drugs[1]), type = "response")
-        
-        preds.drug2 <- predict(models[[i]], newdata = data.bootstrap %>% filter(drugclass == current_drugs[2]), type = "response")
-        
-        # save differences
-        bootstrap_differences <- append(bootstrap_differences, mean(preds.drug1) - mean(preds.drug2))
-        
-      }
-      
-      # collect mean
-      obs <- append(obs, quantile(bootstrap_differences, probs = c(0.5)))
-      
-      # collect lower bound CI
-      lci <- append(lci, quantile(bootstrap_differences, probs = c(0.025)))
-      
-      # collect upper bound CI
-      uci <- append(uci, quantile(bootstrap_differences, probs = c(0.975)))
-      
-    }
-    
-    # join treatment effects for deciles in a data.frame
-    effects <- data.frame(predicted_treatment_effect,cbind(obs, lci, uci))
-    
-    # returned list with fitted propensity model + decile treatment effects
-    final_dataset <- rbind(
-      final_dataset,
-      effects %>% mutate(Type = paste(current_drugs[1], "vs", current_drugs[2]))
-    )
-    
-  }
-  
-  return(final_dataset)
-  
-}
-
-
 
 #
 #:------------ All drugs model
@@ -301,19 +111,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
+ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.no_adj_all_drugs, "results/Heterogeneity/ATE.var_adj.no_adj_all_drugs.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
+ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.overlap_match_all_drugs, "results/Heterogeneity/ATE.var_adj.overlap_match_all_drugs.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
+ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.IPW_match_all_drugs, "results/Heterogeneity/ATE.var_adj.IPW_match_all_drugs.rds")
 
@@ -323,7 +133,7 @@ saveRDS(ATE.var_adj.IPW_match_all_drugs, "results/Heterogeneity/ATE.var_adj.IPW_
 
 
 
-pdf("results/figures/plot_1.pdf", width = 10, height = 7)
+pdf("results/figures/05.plot_1.pdf", width = 10, height = 7)
 
 ATE.var_adj.no_adj_all_drugs %>%
   filter(drug_1 == "MFN" | drug_2 == "MFN") %>%
@@ -343,7 +153,7 @@ dev.off()
 
 
 
-pdf("results/figures/plot_2.pdf", width = 12, height = 9)
+pdf("results/figures/05.plot_2.pdf", width = 12, height = 9)
 
 ATE.var_adj.no_adj_all_drugs %>%
   filter(drug_1 != "MFN" & drug_2 != "MFN") %>%
@@ -483,19 +293,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
+ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.no_adj_2nd_line, "results/Heterogeneity/ATE.var_adj.no_adj_2nd_line.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
+ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.overlap_match_2nd_line, "results/Heterogeneity/ATE.var_adj.overlap_match_2nd_line.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
+ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 500)
 
 saveRDS(ATE.var_adj.IPW_match_2nd_line, "results/Heterogeneity/ATE.var_adj.IPW_match_2nd_line.rds")
 
@@ -503,7 +313,7 @@ saveRDS(ATE.var_adj.IPW_match_2nd_line, "results/Heterogeneity/ATE.var_adj.IPW_m
 
 
 
-pdf("results/figures/plot_3.pdf", width = 12, height = 9)
+pdf("results/figures/05.plot_3.pdf", width = 12, height = 9)
 
 ATE.var_adj.no_adj_2nd_line %>%
   ggplot() +
@@ -566,8 +376,8 @@ dev.off()
 #:-----------------------------------------------------------------
 # Combining pdfs
 
-qpdf::pdf_combine(input = c("results/figures/plot_1.pdf", "results/figures/plot_2.pdf", "results/figures/plot_3.pdf"),
+qpdf::pdf_combine(input = c("results/figures/05.plot_1.pdf", "results/figures/05.plot_2.pdf", "results/figures/05.plot_3.pdf"),
                   output = "results/figures/heterogeneity_differences_analysis.pdf")
 
 
-file.remove(c("results/figures/plot_1.pdf", "results/figures/plot_2.pdf", "results/figures/plot_3.pdf"))
+file.remove(c("results/figures/05.plot_1.pdf", "results/figures/05.plot_2.pdf", "results/figures/05.plot_3.pdf"))
