@@ -8,7 +8,7 @@
 setwd("Samples/T2D_Discontinuation")
 
 # load functions
-source("code/00.set_up_data.R")
+source("code/00.set_up_data_and_functions.R")
 
 # load libraries
 library(ggplot2)
