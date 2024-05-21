@@ -111,19 +111,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 500)
+ATE.var_adj.no_adj_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.no_adj_all_drugs, "results/Heterogeneity/ATE.var_adj.no_adj_all_drugs.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 500)
+ATE.var_adj.overlap_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.overlap_match_all_drugs, "results/Heterogeneity/ATE.var_adj.overlap_match_all_drugs.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 500)
+ATE.var_adj.IPW_match_all_drugs <- calc_ATE(cprd_dataset.dev, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.IPW_match_all_drugs, "results/Heterogeneity/ATE.var_adj.IPW_match_all_drugs.rds")
 
@@ -293,19 +293,19 @@ breakdown <- c(
 
 # ATE not adjusted
 
-ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 500)
+ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.no_adj_2nd_line, "results/Heterogeneity/ATE.var_adj.no_adj_2nd_line.rds")
 
 # ATE overlap matching
 
-ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 500)
+ATE.var_adj.overlap_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "overlap", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.overlap_match_2nd_line, "results/Heterogeneity/ATE.var_adj.overlap_match_2nd_line.rds")
 
 # ATE IPW matching
 
-ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 500)
+ATE.var_adj.IPW_match_2nd_line <- calc_ATE(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", weight.variable = "IPW", matching = TRUE, n_bootstrap = 100)
 
 saveRDS(ATE.var_adj.IPW_match_2nd_line, "results/Heterogeneity/ATE.var_adj.IPW_match_2nd_line.rds")
 
