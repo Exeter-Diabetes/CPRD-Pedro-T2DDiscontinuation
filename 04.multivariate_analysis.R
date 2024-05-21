@@ -9,7 +9,7 @@
 setwd("Samples/T2D_Discontinuation")
 
 # load functions
-source("code/00.set_up_data.R")
+source("code/00.set_up_data_and_functions.R")
 
 # load libraries
 library(tidyverse)
@@ -112,6 +112,10 @@ lm_uber_model.no_weight_adjust <- glm(as.formula(formula_glm), data = cprd_datas
 
 
 roc(cprd_dataset.dev %>% select(stopdrug_3m_6mFU) %>% unlist(), predict(lm_uber_model.no_weight_adjust, type = "response"), ci = TRUE)
+
+
+
+roc(cprd_dataset.val %>% select(stopdrug_3m_6mFU) %>% unlist(), predict(lm_uber_model.no_weight_adjust, newdata = cprd_dataset.val, type = "response"), ci = TRUE)
 
 
 
@@ -233,6 +237,8 @@ lm_uber_model.no_weight_adjust <- glm(as.formula(formula_glm), data = cprd_datas
 
 roc(cprd_dataset.dev %>% select(stopdrug_3m_6mFU) %>% unlist(), predict(lm_uber_model.no_weight_adjust, type = "response"), ci = TRUE)
 
+
+roc(cprd_dataset.val %>% select(stopdrug_3m_6mFU) %>% unlist(), predict(lm_uber_model.no_weight_adjust, newdata = cprd_dataset.val, type = "response"), ci = TRUE)
 
 
 probabilities.only_dataset <- data.frame(
