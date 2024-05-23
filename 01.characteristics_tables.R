@@ -20,7 +20,7 @@ library(patchwork)
 cprd_dataset <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = TRUE,
-  therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
+  therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "full.dataset"
 )
 
@@ -72,7 +72,7 @@ plot_initiations_by_year <- patchwork::wrap_plots(
     legend.text = element_text(size = 20)
   )
 
-pdf("results/figures/plot_initiations_by_year.pdf", width = 11, height = 6)
+pdf("results/figures/01.plot_initiations_by_year.pdf", width = 11, height = 6)
 plot_initiations_by_year
 dev.off()
 
@@ -128,7 +128,7 @@ plot_discontinuation_by_year <- patchwork::wrap_plots(
     legend.text = element_text(size = 20)
   )
 
-pdf("results/figures/plot_discontinuation_by_year.pdf", width = 11, height = 6)
+pdf("results/figures/01.plot_discontinuation_by_year.pdf", width = 11, height = 6)
 plot_discontinuation_by_year
 dev.off()
 
@@ -181,7 +181,7 @@ plot_discontinuation_by_drugclass <- patchwork::wrap_plots(
     legend.text = element_text(size = 20)
   )
 
-pdf("results/figures/plot_discontinuation_by_drugclass.pdf", width = 11, height = 6)
+pdf("results/figures/01.plot_discontinuation_by_drugclass.pdf", width = 11, height = 6)
 plot_discontinuation_by_drugclass
 dev.off()
 
@@ -202,8 +202,7 @@ output_path <- "results/tables"
 
 cprd_tables <- cprd_dataset %>%
   mutate(
-    prealt_na = ifelse(!is.na(prealt), "No", NA),
-    pretotalcholesterol_na = ifelse(!is.na(pretotalcholesterol), "No", NA),
+    prehdl_na = ifelse(!is.na(prehdl), "No", NA),
     preegfr_na = ifelse(!is.na(preegfr), "No", NA),
     prebmi_na = ifelse(!is.na(prebmi), "No", NA),
     dstartdate_age_na = ifelse(!is.na(dstartdate_age), "No", NA),
@@ -219,28 +218,12 @@ vars <- c(
   # Drug taken
   "drugclass",
   # Extra info
-  "only_one_prescription", "alcohol_cat",
   "dstartdate_dm_dur", "dstartdate_dm_dur_na", "dstartdate_age", "dstartdate_age_na", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
-  "prehba1c", "preegfr", "preegfr_na", "prebmi", "prebmi_na", "prealt", "prealt_na", 
-  "pretotalcholesterol", "pretotalcholesterol_na",
-  # preldl, prehdl, pretriglyceride,
+  "prehba1c", "preegfr", "preegfr_na", "prebmi", "prebmi_na",
+  "prehdl", "prehdl_na",
   # Comorbidities
-  ## Hist of cardiovascular
-  "predrug_cardio_event",
-  "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
-  "predrug_revasc", "predrug_stroke", 
-  ## Heart problems
-  "predrug_heart_event",
-  "predrug_heartfailure", "predrug_hypertension",
-  ### Microvascular
-  "predrug_micro_event",
-  "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
-  ## CKD
-  "preckdstage", 
-  ## CLD
-  "predrug_cld",
   ## Frailty proxy
   "predrug_frailty_proxy"
 )
@@ -253,27 +236,12 @@ vars_cat <- c(
   "stopdrug_6m_6mFU",
   "stopdrug_12m_6mFU",
   # Extra info
-  "only_one_prescription", "alcohol_cat",
-  "dstartdate_dm_dur_na", "dstartdate_age_na", "smoking_cat", "imd2015_10",
-  "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
+  "dstartdate_dm_dur_na", "dstartdate_age_na", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
+  "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
-  "preegfr_na", "prebmi_na", "prealt_na", 
-  "pretotalcholesterol_na",
+  "preegfr_na", "prebmi_na",
+  "prehdl_na",
   # Comorbidities
-  ## Hist of cardiovascular
-  "predrug_cardio_event",
-  "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
-  "predrug_revasc", "predrug_stroke",
-  ## Heart problems
-  "predrug_heart_event",
-  "predrug_heartfailure", "predrug_hypertension",
-  ### Microvascular
-  "predrug_micro_event",
-  "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
-  ## CKD
-  "preckdstage", 
-  ## CLD
-  "predrug_cld",
   ## Frailty proxy
   "predrug_frailty_proxy"
 )
@@ -310,96 +278,20 @@ table_characteristics_all_print <- print(table_characteristics_all, exact = "sta
 write.csv(table_characteristics_all_print, file = paste0(output_path, "/table_characteristics_all.csv"))
 
 
-### DPP4
+### Per discontinuation per drug
 
-table_characteristics_dpp4 <- CreateTableOne(
+table_characteristics_disc_drug <- CreateTableOne(
   vars = vars,
   factorVars = vars_cat,
   includeNA = TRUE,
   strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "DPP4"),
+  data = cprd_tables,
   test = TRUE
 )
 
-table_characteristics_dpp4_print <- print(table_characteristics_dpp4, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
+table_characteristics_disc_drug_print <- print(table_characteristics_disc_drug, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
 
-write.csv(table_characteristics_dpp4_print, file = paste0(output_path, "/table_characteristics_dpp4.csv"))
-
-### GLP1
-
-table_characteristics_glp1 <- CreateTableOne(
-  vars = vars,
-  factorVars = vars_cat,
-  includeNA = TRUE,
-  strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "GLP1"),
-  test = TRUE
-)
-
-table_characteristics_glp1_print <- print(table_characteristics_glp1, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table_characteristics_glp1_print, file = paste0(output_path, "/table_characteristics_glp1.csv"))
-
-### MFN
-
-table_characteristics_mfn <- CreateTableOne(
-  vars = vars,
-  factorVars = vars_cat,
-  includeNA = TRUE,
-  strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "MFN"),
-  test = TRUE
-)
-
-table_characteristics_mfn_print <- print(table_characteristics_mfn, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table_characteristics_mfn_print, file = paste0(output_path, "/table_characteristics_mfn.csv"))
-
-### SGLT2
-
-table_characteristics_sglt2 <- CreateTableOne(
-  vars = vars,
-  factorVars = vars_cat,
-  includeNA = TRUE,
-  strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "SGLT2"),
-  test = TRUE
-)
-
-table_characteristics_sglt2_print <- print(table_characteristics_sglt2, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table_characteristics_sglt2_print, file = paste0(output_path, "/table_characteristics_sglt2.csv"))
-
-### SU
-
-table_characteristics_su <- CreateTableOne(
-  vars = vars,
-  factorVars = vars_cat,
-  includeNA = TRUE,
-  strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "SU"),
-  test = TRUE
-)
-
-table_characteristics_su_print <- print(table_characteristics_su, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table_characteristics_su_print, file = paste0(output_path, "/table_characteristics_su.csv"))
-
-### TZD
-
-table_characteristics_tzd <- CreateTableOne(
-  vars = vars,
-  factorVars = vars_cat,
-  includeNA = TRUE,
-  strata = c("stopdrug_3m_6mFU", "drugclass"),
-  data = cprd_tables %>% filter(drugclass == "TZD"),
-  test = TRUE
-)
-
-table_characteristics_tzd_print <- print(table_characteristics_tzd, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
-
-write.csv(table_characteristics_tzd_print, file = paste0(output_path, "/table_characteristics_tzd.csv"))
-
+write.csv(table_characteristics_disc_drug_print, file = paste0(output_path, "/table_characteristics_disc_drug.csv"))
 
 
 
@@ -1053,7 +945,7 @@ plot_discontinuation_dm_dur <- patchwork::wrap_plots(
 output_path <- "results/figures/"
 
 
-pdf(paste0(output_path, "discontinuation_strata.pdf"), width = 7, height = 8)
+pdf(paste0(output_path, "01.discontinuation_strata.pdf"), width = 7, height = 8)
 plot_discontinuation_drugclass
 plot_discontinuation_sex
 plot_discontinuation_age
@@ -1066,14 +958,14 @@ dev.off()
 
 ### Missingness investigation
 
-pdf(paste0(output_path, "missingness_investigation.pdf"), width = 7, height = 12)
+pdf(paste0(output_path, "01.missingness_investigation.pdf"), width = 7, height = 12)
 
 cprd_dataset %>%
   select(
     drugclass,
     # Biomarkers
     precreatinine_blood, 
-    prealt, pretotalcholesterol, predbp, presbp, prehba1c, 
+    prealt, prehdl, predbp, presbp, prehba1c, 
     preegfr, prebilirubin,
     # Commorbidities
     preckdstage, predrug_frailty_mild, predrug_frailty_moderate, 
