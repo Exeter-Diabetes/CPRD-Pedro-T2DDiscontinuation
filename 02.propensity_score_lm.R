@@ -43,7 +43,7 @@ drug.pscores <- SumStat(
     "smoking_cat", "imd2015_10", "gender",
     # Biomarkers
     "prehba1c", "preegfr", "prebmi", "prealt", 
-    "pretotalcholesterol"
+    "prehdl"
   ), collapse = "+"))),
   data = cprd_dataset,
   weight = c("overlap", "IPW")
@@ -81,7 +81,7 @@ saveRDS(ps.only_dataset, "results/PS_model/ps.dataset_lm_all.rds")
 
 # drug.pscores <- readRDS("results/PS_model/drug.pscores_model.rds")
 
-pdf("results/figures/covariate_balance.pdf", width = 12, height = 10)
+pdf("results/figures/02.covariate_balance.pdf", width = 12, height = 10)
 plot(drug.pscores)
 dev.off()
 
