@@ -45,7 +45,7 @@ drug.pscores <- SumStat(
     "prehba1c", "preegfr", "prebmi", "prealt", 
     "prehdl"
   ), collapse = "+"))),
-  data = cprd_dataset,
+  data = cprd_dataset %>% mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"))),
   weight = c("overlap", "IPW")
 )
 
@@ -61,12 +61,11 @@ saveRDS(drug.pscores, "results/PS_model/drug.pscores_model.rds")
 ps.only_dataset <- data.frame(
   patid = cprd_dataset$patid,
   dstartdate = cprd_dataset$dstartdate,
-  prop.score.MFN = drug.pscores$propensity[,1],
-  prop.score.GLP1 = drug.pscores$propensity[,2],
-  prop.score.DPP4 = drug.pscores$propensity[,3],
-  prop.score.SGLT2 = drug.pscores$propensity[,4],
-  prop.score.SU = drug.pscores$propensity[,5],
-  prop.score.TZD = drug.pscores$propensity[,6],
+  prop.score.GLP1 = drug.pscores$propensity[,1],
+  prop.score.DPP4 = drug.pscores$propensity[,2],
+  prop.score.SGLT2 = drug.pscores$propensity[,3],
+  prop.score.SU = drug.pscores$propensity[,4],
+  prop.score.TZD = drug.pscores$propensity[,5],
   prop.score.overlap = drug.pscores$`ps.weights` %>% as.data.frame() %>% select(overlap) %>% unlist(),
   prop.score.IPW = drug.pscores$`ps.weights` %>% as.data.frame() %>% select(IPW) %>% unlist()
 )
