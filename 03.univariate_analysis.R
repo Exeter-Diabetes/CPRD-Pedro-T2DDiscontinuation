@@ -15,6 +15,1506 @@ source("code/00.set_up_data_and_functions.R")
 library(tidyverse)
 library(patchwork)
 
+
+###############################################################################
+###############################################################################
+############################### Read Data In ##################################
+###############################################################################
+###############################################################################
+
+# load dataset
+cprd_dataset <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = FALSE,
+  therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
+  dataset = "3m.disc.dataset"
+) %>%
+  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
+
+
+
+# Start plot by variables
+
+
+pdf("results/figures/03.3m_discontinuation_by_variable.pdf", width = 6, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Overall
+  cprd_dataset %>%
+    select(stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    prop.table() %>%
+    as.data.frame() %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = analysis_var, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(breaks = c(1), labels = c("Overall")) +
+    ggtitle("Overall") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_3m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_3m_6mFU) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_3m_6mFU) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_3m_6mFU) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_3m_6mFU) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw(),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_3m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.2)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              # guides = "collect",
+              height = c(1, 6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+pdf("results/figures/03.3m_discontinuation_by_variable_by_drug.pdf", width = 8, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_3m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_3m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_3m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              guides = "collect",
+              height = c(6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+
+
+# load dataset
+cprd_dataset <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = FALSE,
+  therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
+  dataset = "6m.disc.dataset"
+) %>%
+  drop_na(-stopdrug_12m_6mFU)
+
+
+
+# Start plot by variables
+
+
+pdf("results/figures/03.6m_discontinuation_by_variable.pdf", width = 6, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Overall
+  cprd_dataset %>%
+    select(stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    prop.table() %>%
+    as.data.frame() %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = analysis_var, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(breaks = c(1), labels = c("Overall")) +
+    ggtitle("Overall") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_6m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_6m_6mFU) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_6m_6mFU) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_6m_6mFU) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_6m_6mFU) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw(),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_6m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.3)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              # guides = "collect",
+              height = c(1, 6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+pdf("results/figures/03.6m_discontinuation_by_variable_by_drug.pdf", width = 8, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_6m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_6m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_6m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              guides = "collect",
+              height = c(6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+
+# load dataset
+cprd_dataset <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = FALSE,
+  therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
+  dataset = "6m.disc.dataset"
+) %>%
+  drop_na()
+
+
+
+
+# Start plot by variables
+
+
+pdf("results/figures/03.12m_discontinuation_by_variable.pdf", width = 6, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Overall
+  cprd_dataset %>%
+    select(stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    prop.table() %>%
+    as.data.frame() %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = analysis_var, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(breaks = c(1), labels = c("Overall")) +
+    ggtitle("Overall") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_12m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_12m_6mFU) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_12m_6mFU) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_12m_6mFU) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_12m_6mFU) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    t() %>%
+    as.data.frame() %>%
+    group_by(group) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw(),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_12m_6mFU) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq)) +
+    geom_col() +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4)) +
+    theme_bw() +
+    theme(
+      legend.position = "none"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              # guides = "collect",
+              height = c(1, 6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+pdf("results/figures/03.12m_discontinuation_by_variable_by_drug.pdf", width = 8, height = 15)
+
+
+patchwork::wrap_plots(
+  
+  # Drugclass
+  cprd_dataset %>%
+    select(drugclass, stopdrug_12m_6mFU) %>%
+    mutate(drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugclass, x = Freq, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+    ggtitle("Therapies") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Age
+  cprd_dataset %>%
+    select(dstartdate_age, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_age, breaks = c(18, 40, 50, 60, 70, 80, 90, 150))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-dstartdate_age) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("90+", "80-89", "70-79", "60-69", "50-59", "40-49", "<40")) +
+    ggtitle("Age group, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Sex
+  cprd_dataset %>%
+    select(gender, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(gender, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = gender, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    ggtitle("Sex") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Quintile
+  cprd_dataset %>%
+    select(imd2015_10, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(imd2015_10, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = imd2015_10, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("5 (most deprived)", "4", "3", "2", "1 (least deprived)")) +
+    ggtitle("Index of multiple deprivation quintile") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # BMI
+  cprd_dataset %>%
+    select(prebmi, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prebmi, breaks = c(1, 18.5, 25, 30, 35, 40, 500))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-prebmi) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("40+", "35-39.9", "30-34.9", "25-29.9", "18.5-24.9", "<18.5")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Diabetes duration
+  cprd_dataset %>%
+    select(dstartdate_dm_dur, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(dstartdate_dm_dur, breaks = c(-1, 1, 3, 6, 10, 15, 20, 150))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-dstartdate_dm_dur) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("20+" ,"15-19", "10-14", "6-9", "3-5", "1-2", "<1")) +
+    ggtitle("Duration of diabetes, years") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # HbA1c
+  cprd_dataset %>%
+    select(prehba1c, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    mutate(group = cut(prehba1c, breaks = c(52, 64, 75, 86, 250))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    select(-prehba1c) %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(group, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = group, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("86+", "75-86", "64-75", "53-64")) +
+    ggtitle("HbA1c, mmol/mol") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # drugline
+  cprd_dataset %>%
+    select(drugline, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(drugline, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = drugline, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev) +
+    ggtitle("Number of therapy classes ever prescribed") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Frailty
+  cprd_dataset %>%
+    select(predrug_frailty_proxy, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(predrug_frailty_proxy, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = predrug_frailty_proxy, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Frailty") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    ),
+  
+  # Ethnicity
+  cprd_dataset %>%
+    select(ethnicity_5cat, stopdrug_12m_6mFU, drugclass) %>%
+    mutate(drugclass = factor(drugclass, levels = rev(c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))) %>%
+    rename("analysis_var" = "stopdrug_12m_6mFU") %>%
+    table() %>%
+    as.data.frame() %>%
+    group_by(ethnicity_5cat, drugclass) %>%
+    mutate(total = sum(Freq), Freq = Freq/total) %>%
+    filter(analysis_var == 1) %>%
+    ggplot(aes(y = ethnicity_5cat, x = Freq, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+    scale_y_discrete(limits = rev, labels = c("Mixed", "Other", "Black", "South Asian", "White")) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      legend.position = "bottom"
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(axis_titles = "collect",
+              guides = "collect",
+              height = c(6, 7, 2, 5, 6, 7, 4, 5, 2, 5),
+              axes = "collect") &
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15)
+  )
+
+
+dev.off()
+
+
+
+
 ###############################################################################
 ###############################################################################
 ############################### Read Data In ##################################
@@ -109,9 +1609,9 @@ univariate_analysis <- function(data, drugs, outcome = "stopdrug_3m_6mFU", varia
       UCI = as.numeric(UCI)
     )
   )
- 
+  
   return(output)
-   
+  
 }
 
 
@@ -191,14 +1691,14 @@ prealt_sum <- univariate_analysis(
 )
 
 
-# pretotalcholesterol
+# prehdl
 
 cprd <- cprd_dataset %>%
-  mutate_at(c("pretotalcholesterol"), ~(scale(.) %>% as.vector))
+  mutate_at(c("prehdl"), ~(scale(.) %>% as.vector))
 
-pretotalcholesterol_sum <- univariate_analysis(
+prehdl_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_3m_6mFU", 
-  variable = "pretotalcholesterol", variable_name = "Total cholesterol (per SD)", type = "Clinical features & biomarkers"
+  variable = "prehdl", variable_name = "HDL (per SD)", type = "Clinical features & biomarkers"
 )
 
 
@@ -326,7 +1826,7 @@ coefficients <- rbind(
   preegfr_sum,
   prebmi_sum,
   prealt_sum,
-  pretotalcholesterol_sum,
+  prehdl_sum,
   gender_sum,
   predrug_bloodmed_sum,
   predrug_statins_sum,
@@ -352,7 +1852,7 @@ coefficients <- rbind(
   )
 
 
-pdf("results/figures/univariate_analysis_3m.pdf", width = 12, height = 11)
+pdf("results/figures/03.univariate_analysis_3m.pdf", width = 12, height = 11)
 
 wrap_plots(
   
@@ -492,11 +1992,11 @@ prealt_sum <- univariate_analysis(
 )
 
 
-# pretotalcholesterol
+# prehdl
 
-pretotalcholesterol_sum <- univariate_analysis(
+prehdl_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_6m_6mFU", 
-  variable = "pretotalcholesterol", variable_name = "Total cholesterol (per SD)", type = "Clinical features & biomarkers"
+  variable = "prehdl", variable_name = "HDL (per SD)", type = "Clinical features & biomarkers"
 )
 
 
@@ -612,7 +2112,7 @@ coefficients <- rbind(
   preegfr_sum,
   prebmi_sum,
   prealt_sum,
-  pretotalcholesterol_sum,
+  prehdl_sum,
   gender_sum,
   predrug_bloodmed_sum,
   predrug_statins_sum,
@@ -638,7 +2138,7 @@ coefficients <- rbind(
   )
 
 
-pdf("results/figures/univariate_analysis_6m.pdf", width = 12, height = 11)
+pdf("results/figures/03.univariate_analysis_6m.pdf", width = 12, height = 11)
 
 wrap_plots(
   
@@ -775,11 +2275,11 @@ prealt_sum <- univariate_analysis(
 )
 
 
-# pretotalcholesterol
+# prehdl
 
-pretotalcholesterol_sum <- univariate_analysis(
+prehdl_sum <- univariate_analysis(
   cprd_dataset, drugs = drugs, outcome = "stopdrug_12m_6mFU", 
-  variable = "pretotalcholesterol", variable_name = "Total cholesterol (per SD)", type = "Clinical features & biomarkers"
+  variable = "prehdl", variable_name = "HDL (per SD)", type = "Clinical features & biomarkers"
 )
 
 
@@ -895,7 +2395,7 @@ coefficients <- rbind(
   preegfr_sum,
   prebmi_sum,
   prealt_sum,
-  pretotalcholesterol_sum,
+  prehdl_sum,
   gender_sum,
   predrug_bloodmed_sum,
   predrug_statins_sum,
@@ -921,7 +2421,7 @@ coefficients <- rbind(
   )
 
 
-pdf("results/figures/univariate_analysis_12m.pdf", width = 12, height = 11)
+pdf("results/figures/03.univariate_analysis_12m.pdf", width = 12, height = 11)
 
 wrap_plots(
   
