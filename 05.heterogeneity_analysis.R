@@ -62,7 +62,7 @@ cprd_dataset.val <- cprd_dataset.val %>%
   )
 
 
-probabilities.only_dataset <- readRDS("results/Models/Predictions/model_predictions_3m_all_drugs.rds")
+probabilities.only_dataset <- readRDS("results/Models/Predictions/04.model_predictions_3m_all_drugs.rds")
 
 
 # join predictions into dataset
@@ -260,7 +260,7 @@ cprd_dataset.val <- cprd_dataset.val %>%
   )
 
 
-probabilities.only_dataset <- readRDS("results/Models/Predictions/model_predictions_3m_2nd_line_drugs.rds")
+probabilities.only_dataset <- readRDS("results/Models/Predictions/04.model_predictions_3m_2nd_line_drugs.rds")
 
 
 # join predictions into dataset
