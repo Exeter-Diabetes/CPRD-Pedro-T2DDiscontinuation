@@ -382,9 +382,6 @@ roc_dataset <- rbind(
 
 
 
-
-
-
 ###############################################################################
 ###############################################################################
 ############################### Read Data In ##################################
@@ -556,6 +553,36 @@ roc_dataset <- rbind(
 
 saveRDS(roc_dataset, "results/Models/Predictions/04.roc_multivariate_disc.rds")
 
+
+
+pdf("results/figures/04.roc_multivariate_disc_development.pdf", width = 7, height = 10)
+
+roc_dataset %>%
+  mutate(
+    model = factor(model, levels = c("Highlighted vars", "Highlighted vars + extra"), labels = c("Highlighted features", "Highlighted features + routine clinical features + biomarkers")),
+    outcome = factor(outcome),
+    dataset = factor(dataset, levels = c("Development", "Validation"), labels = c("Development dataset", "Validation dataset")),
+    drug = factor(drug, levels = rev(c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))
+  ) %>%
+  ggplot(aes(y = outcome, x = roc, xmin = roc_lci, xmax = roc_uci, colour = drug)) +
+  geom_point(position = position_dodge(width = 1)) + 
+  geom_errorbar(position = position_dodge(width = 1)) +
+  scale_x_continuous("AUROC", limits = c(0.45, 0.65), breaks = seq(0.45, 0.65, 0.05)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+  guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
+  facet_wrap(model ~ dataset, ncol = 1) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    axis.title.y = element_blank(),
+    axis.title.x = element_text(size = 15),
+    axis.text = element_text(size = 13),
+    strip.text = element_text(size = 13),
+    legend.title = element_text(size = 13),
+    legend.text = element_text(size = 13)
+  )
+
+dev.off()
 
 ###############################################################################
 ###############################################################################
