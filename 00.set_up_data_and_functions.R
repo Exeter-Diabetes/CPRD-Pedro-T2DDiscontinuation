@@ -240,8 +240,7 @@ set_up_data <- function(
       predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
       # Biomarkers
       prehba1c, preegfr, prebmi, prealt, 
-      pretotalcholesterol,
-      # preldl, prehdl, pretriglyceride,
+      prehdl,
       # Comorbidities
       ## Hist of cardiovascular
       predrug_cardio_event,
@@ -988,59 +987,59 @@ calc_predicted_risk <- function(data, drugs, pred.variable = "no_weight", weight
           
         }
         
-      
-          if (matching == FALSE) {
+        
+        if (matching == FALSE) {
+          
+          if (!is.null(weight.variable)) {
             
-              if (!is.null(weight.variable)) {
-                
-                # fit linear regression for decile in the matched dataset
-                models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.new, weights = propensity.score, family = quasibinomial())
-                
-                
-                stop("Not coded")
-                
-                
-              } else {
-                
-                # fit linear regression for decile in the matched dataset
-                models[[i]] <- glm(as.formula(formula),data=data.new, family = binomial())
-                
-                # make predictions
-                preds.drug1 <- predict(models[[i]], newdata = data.new %>% filter(drugclass == current_drugs[1]) %>% slice(1), type = "response", se.fit = TRUE)
-                
-                preds.drug2 <- predict(models[[i]], newdata = data.new %>% filter(drugclass == current_drugs[2]) %>% slice(1), type = "response", se.fit = TRUE)
-                
-              }
-              
+            # fit linear regression for decile in the matched dataset
+            models[[i]] <- glm(as.formula("stopdrug_3m_6mFU ~ factor(drugclass)"), data=data.new, weights = propensity.score, family = quasibinomial())
             
-            # collect mean
-            drug1_obs <- append(drug1_obs, preds.drug1$fit)
             
-            # collect lower bound CI
-            if (preds.drug1$fit - 1.96*(preds.drug1$se.fit) < 0) {drug1_lci <- append(drug1_lci, 0)} else {drug1_lci <- append(drug1_lci, preds.drug1$fit - 1.96*(preds.drug1$se.fit))}
-            
-            # collect upper bound CI
-            if (preds.drug1$fit + 1.96*(preds.drug1$se.fit) < 0) {drug1_uci <- append(drug1_uci, 0)} else {drug1_uci <- append(drug1_uci, preds.drug1$fit + 1.96*(preds.drug1$se.fit))}
-            
-            # collect mean
-            drug2_obs <- append(drug2_obs, preds.drug2$fit)
-            
-            # collect lower bound CI
-            if (preds.drug2$fit - 1.96*(preds.drug2$se.fit) < 0) {drug2_lci <- append(drug2_lci, 0)} else {drug2_lci <- append(drug2_lci, preds.drug2$fit - 1.96*(preds.drug2$se.fit))}
-            
-            # collect upper bound CI
-            if (preds.drug2$fit + 1.96*(preds.drug2$se.fit) < 0) {drug2_uci <- append(drug2_uci, 0)} else {drug2_uci <- append(drug2_uci, preds.drug2$fit + 1.96*(preds.drug2$se.fit))}
-            
+            stop("Not coded")
             
             
           } else {
             
-            stop("Not coded")
+            # fit linear regression for decile in the matched dataset
+            models[[i]] <- glm(as.formula(formula),data=data.new, family = binomial())
+            
+            # make predictions
+            preds.drug1 <- predict(models[[i]], newdata = data.new %>% filter(drugclass == current_drugs[1]) %>% slice(1), type = "response", se.fit = TRUE)
+            
+            preds.drug2 <- predict(models[[i]], newdata = data.new %>% filter(drugclass == current_drugs[2]) %>% slice(1), type = "response", se.fit = TRUE)
             
           }
           
+          
+          # collect mean
+          drug1_obs <- append(drug1_obs, preds.drug1$fit)
+          
+          # collect lower bound CI
+          if (preds.drug1$fit - 1.96*(preds.drug1$se.fit) < 0) {drug1_lci <- append(drug1_lci, 0)} else {drug1_lci <- append(drug1_lci, preds.drug1$fit - 1.96*(preds.drug1$se.fit))}
+          
+          # collect upper bound CI
+          if (preds.drug1$fit + 1.96*(preds.drug1$se.fit) < 0) {drug1_uci <- append(drug1_uci, 0)} else {drug1_uci <- append(drug1_uci, preds.drug1$fit + 1.96*(preds.drug1$se.fit))}
+          
+          # collect mean
+          drug2_obs <- append(drug2_obs, preds.drug2$fit)
+          
+          # collect lower bound CI
+          if (preds.drug2$fit - 1.96*(preds.drug2$se.fit) < 0) {drug2_lci <- append(drug2_lci, 0)} else {drug2_lci <- append(drug2_lci, preds.drug2$fit - 1.96*(preds.drug2$se.fit))}
+          
+          # collect upper bound CI
+          if (preds.drug2$fit + 1.96*(preds.drug2$se.fit) < 0) {drug2_uci <- append(drug2_uci, 0)} else {drug2_uci <- append(drug2_uci, preds.drug2$fit + 1.96*(preds.drug2$se.fit))}
+          
+          
+          
+        } else {
+          
+          stop("Not coded")
+          
         }
         
+      }
+      
     }
     # join treatment effects for deciles in a data.frame
     effects <- data.frame(predicted_treatment_effect,cbind(obs = drug1_obs, lci = drug1_lci, uci = drug1_uci, drug_type = current_drugs[1])) %>%
