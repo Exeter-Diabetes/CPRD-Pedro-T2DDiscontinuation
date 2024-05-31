@@ -145,7 +145,7 @@ formula_high_vars_extra <- "~ dstartdate_age + gender + imd2015_10 + prebmi + ds
 
 #### Pooled
 
-lm.3m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
+lm.3m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -156,7 +156,7 @@ roc_dataset <- rbind(
 #### By drugclass
 
 # MFN
-lm.3m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
+lm.3m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -165,7 +165,7 @@ roc_dataset <- rbind(
 )
 
 # GLP1
-lm.3m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
+lm.3m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -174,7 +174,7 @@ roc_dataset <- rbind(
 )
 
 # DPP4
-lm.3m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
+lm.3m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -183,7 +183,7 @@ roc_dataset <- rbind(
 )
 
 # SGLT2
-lm.3m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
+lm.3m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -192,7 +192,7 @@ roc_dataset <- rbind(
 )
 
 # TZD
-lm.3m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
+lm.3m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -201,7 +201,7 @@ roc_dataset <- rbind(
 )
 
 # SU
-lm.3m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
+lm.3m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -316,7 +316,7 @@ formula_high_vars_extra <- "~ dstartdate_age + gender + imd2015_10 + prebmi + ds
 
 #### Pooled
 
-lm.6m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
+lm.6m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -327,7 +327,7 @@ roc_dataset <- rbind(
 #### By drugclass
 
 # MFN
-lm.6m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
+lm.6m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -336,7 +336,7 @@ roc_dataset <- rbind(
 )
 
 # GLP1
-lm.6m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
+lm.6m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -345,7 +345,7 @@ roc_dataset <- rbind(
 )
 
 # DPP4
-lm.6m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
+lm.6m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -354,7 +354,7 @@ roc_dataset <- rbind(
 )
 
 # SGLT2
-lm.6m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
+lm.6m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -363,7 +363,7 @@ roc_dataset <- rbind(
 )
 
 # TZD
-lm.6m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
+lm.6m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -372,7 +372,7 @@ roc_dataset <- rbind(
 )
 
 # SU
-lm.6m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
+lm.6m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -486,7 +486,7 @@ formula_high_vars_extra <- "~ dstartdate_age + gender + imd2015_10 + prebmi + ds
 
 #### Pooled
 
-lm.12m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
+lm.12m.pooled.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ drugclass:stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev, family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -497,7 +497,7 @@ roc_dataset <- rbind(
 #### By drugclass
 
 # MFN
-lm.12m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
+lm.12m.MFN.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -506,7 +506,7 @@ roc_dataset <- rbind(
 )
 
 # GLP1
-lm.12m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
+lm.12m.GLP1.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "GLP1"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -515,7 +515,7 @@ roc_dataset <- rbind(
 )
 
 # DPP4
-lm.12m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
+lm.12m.DPP4.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "DPP4"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -524,7 +524,7 @@ roc_dataset <- rbind(
 )
 
 # SGLT2
-lm.12m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
+lm.12m.SGLT2.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SGLT2"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -533,7 +533,7 @@ roc_dataset <- rbind(
 )
 
 # TZD
-lm.12m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
+lm.12m.TZD.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "TZD"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
@@ -542,7 +542,7 @@ roc_dataset <- rbind(
 )
 
 # SU
-lm.12m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
+lm.12m.SU.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+ stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass == "SU"), family = binomial())
 
 roc_dataset <- rbind(
   roc_dataset,
