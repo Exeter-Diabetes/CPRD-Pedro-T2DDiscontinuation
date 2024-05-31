@@ -567,7 +567,7 @@ roc_dataset %>%
   ggplot(aes(y = outcome, x = roc, xmin = roc_lci, xmax = roc_uci, colour = drug)) +
   geom_point(position = position_dodge(width = 1)) + 
   geom_errorbar(position = position_dodge(width = 1)) +
-  scale_x_continuous("AUROC", limits = c(0.45, 0.65), breaks = seq(0.45, 0.65, 0.05)) +
+  scale_x_continuous("AUROC", limits = c(0.475, 0.65), breaks = seq(0.475, 0.65, 0.025)) +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
   guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
   facet_wrap(model ~ dataset, ncol = 1) +
