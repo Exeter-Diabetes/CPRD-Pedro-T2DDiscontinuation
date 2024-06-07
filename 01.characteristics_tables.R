@@ -21,7 +21,8 @@ cprd_dataset <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = TRUE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
-  dataset = "full.dataset"
+  dataset = "full.dataset",
+  full_prescribing_history = TRUE
 )
 
 
@@ -196,6 +197,17 @@ dev.off()
 #
 #########################################################################################################
 #########################################################################################################
+
+
+# load dataset
+cprd_dataset <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = TRUE,
+  therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
+  dataset = "3m.disc.dataset",
+  full_prescribing_history = TRUE
+)
+
 
 output_path <- "results/tables"
 

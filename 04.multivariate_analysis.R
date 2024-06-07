@@ -30,7 +30,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "3m.disc.dataset.dev"
+  dataset = "3m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -39,7 +40,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "3m.disc.dataset.val"
+  dataset = "3m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -223,7 +225,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "6m.disc.dataset.dev"
+  dataset = "6m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_12m_6mFU)
 
@@ -232,7 +235,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "6m.disc.dataset.val"
+  dataset = "6m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_12m_6mFU)
 
@@ -393,7 +397,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "12m.disc.dataset.dev"
+  dataset = "12m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na()
 
@@ -402,7 +407,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
-  dataset = "12m.disc.dataset.val"
+  dataset = "12m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na()
 
@@ -560,9 +566,9 @@ pdf("results/figures/04.roc_multivariate_disc.pdf", width = 7, height = 10)
 roc_dataset %>%
   mutate(
     model = factor(model, levels = c("Highlighted vars", "Highlighted vars + extra"), labels = c("Highlighted features", "Highlighted features + routine clinical features + biomarkers")),
-    outcome = factor(outcome),
+    outcome = factor(outcome, levels = c("12-months", "6-months", "3-months")),
     dataset = factor(dataset, levels = c("Development", "Validation"), labels = c("Development dataset", "Validation dataset")),
-    drug = factor(drug, levels = rev(c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU")))
+    drug = factor(drug, levels = rev(c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"))),
   ) %>%
   ggplot(aes(y = outcome, x = roc, xmin = roc_lci, xmax = roc_uci, colour = drug)) +
   geom_point(position = position_dodge(width = 1)) + 
@@ -595,7 +601,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.dev"
+  dataset = "3m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -615,7 +622,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.val"
+  dataset = "3m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -783,7 +791,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.dev"
+  dataset = "3m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -803,7 +812,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.val"
+  dataset = "3m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 

@@ -27,7 +27,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.dev"
+  dataset = "3m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -37,7 +38,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.val"
+  dataset = "3m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -225,7 +227,8 @@ cprd_dataset.dev <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.dev"
+  dataset = "3m.disc.dataset.dev",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
@@ -235,7 +238,8 @@ cprd_dataset.val <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-  dataset = "3m.disc.dataset.val"
+  dataset = "3m.disc.dataset.val",
+  full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
