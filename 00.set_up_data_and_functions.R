@@ -13,7 +13,8 @@ set_up_data <- function(
     raw_data = "20240308_t2d_1stinstance",
     diagnosis = FALSE,
     therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
-    dataset = "full.dataset"
+    dataset = "full.dataset",
+    full_prescribing_history = TRUE
 ) {
   
   # load functions
@@ -33,6 +34,9 @@ set_up_data <- function(
   ))) {
     stop("'dataset' needs to be: full.dataset / 3m.disc.dataset / 3m.disc.dataset.dev / 3m.disc.dataset.val / 6m.disc.dataset / 6m.disc.dataset.dev / 6m.disc.dataset.val / 12m.disc.dataset / 12m.disc.dataset.dev / 12m.disc.dataset.val")
   }
+  # Check for 'full_prescribing_history'
+  if(missing(full_prescribing_history)) {stop("'full_prescribing_history' needs to be supplied.")}
+  if(!(full_prescribing_history %in% c(TRUE, FALSE))) {stop("'full_prescribing_history' must be TRUE or FALSE.")}
   
   
   ###############################################
@@ -62,17 +66,22 @@ set_up_data <- function(
   
   ###############################################
   
-  # Keep patients with full prescribing data
-  cprd_dataset <- cprd_dataset %>%
-    filter(!is.na(dm_diag_date))
-  
-  
-  ## Check therapies being initiated
-  if (isTRUE(diagnosis)) {
-    print("#####################################")
-    print(paste("Patients with full prescribing data:", nrow(cprd_dataset)))
-    print(table(cprd_dataset$drugclass))
-    print("#####################################")
+  # If TRUE, remove missing diagnosis date
+  if (isTRUE(full_prescribing_history)) {
+    
+    # Keep patients with full prescribing data
+    cprd_dataset <- cprd_dataset %>%
+      filter(!is.na(dm_diag_date))
+    
+    
+    ## Check therapies being initiated
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with full prescribing data:", nrow(cprd_dataset)))
+      print(table(cprd_dataset$drugclass))
+      print("#####################################")
+    }
+    
   }
   
   
@@ -89,6 +98,7 @@ set_up_data <- function(
   if (isTRUE(diagnosis)) {
     print("#####################################")
     print(paste("Patients after 2014-01-01:", nrow(cprd_dataset)))
+    print(table(cprd_dataset$drugclass, useNA = "ifany"))
     print("#####################################")
   }
   
@@ -121,6 +131,7 @@ set_up_data <- function(
   if (isTRUE(diagnosis)) {
     print("#####################################")
     print(paste("Patients initiating only one therapy:", nrow(cprd_dataset)))
+    print(table(cprd_dataset$drugclass, useNA = "ifany"))
     print("#####################################")
   }
   
@@ -128,10 +139,26 @@ set_up_data <- function(
   #####################################################################################
   #####################################################################################
   
+  # Remove patients without HbA1c
+  
+  cprd_dataset <- cprd_dataset %>%
+    filter(!is.na(prehba1c))
+  
+  
+  ## Check patients after data
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients with HbA1c:", nrow(cprd_dataset)))
+    print("#####################################")
+  }
+  
+  #####################################################################################
+  #####################################################################################
+  
   # Remove patients with HbA1c above 53
   
   cprd_dataset <- cprd_dataset %>%
-    filter(!is.na(prehba1c) & prehba1c > 53)
+    filter(prehba1c > 53)
   
   
   ## Check patients after data
