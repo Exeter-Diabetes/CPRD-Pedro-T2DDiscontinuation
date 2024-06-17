@@ -22,6 +22,7 @@ cprd_dataset <- set_up_data(
   diagnosis = TRUE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "full.dataset",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 )
 
@@ -205,6 +206,7 @@ cprd_dataset <- set_up_data(
   diagnosis = TRUE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 )
 

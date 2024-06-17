@@ -28,6 +28,7 @@ cprd_dataset <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)

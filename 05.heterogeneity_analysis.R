@@ -28,6 +28,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -39,6 +40,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -228,6 +230,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -239,6 +242,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)

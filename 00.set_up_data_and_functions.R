@@ -14,6 +14,7 @@ set_up_data <- function(
     diagnosis = FALSE,
     therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
     dataset = "full.dataset",
+    follow_up = "6-months",
     full_prescribing_history = TRUE
 ) {
   
@@ -34,6 +35,9 @@ set_up_data <- function(
   ))) {
     stop("'dataset' needs to be: full.dataset / 3m.disc.dataset / 3m.disc.dataset.dev / 3m.disc.dataset.val / 6m.disc.dataset / 6m.disc.dataset.dev / 6m.disc.dataset.val / 12m.disc.dataset / 12m.disc.dataset.dev / 12m.disc.dataset.val")
   }
+  # Check for 'follow_up'
+  if(missing(follow_up)) {stop("'follow_up' needs to be supplied.")}
+  if(!(follow_up %in% c("3-months", "6-months"))) {stop("'follow_up' needs to be: 3-months / 6-months")}
   # Check for 'full_prescribing_history'
   if(missing(full_prescribing_history)) {stop("'full_prescribing_history' needs to be supplied.")}
   if(!(full_prescribing_history %in% c(TRUE, FALSE))) {stop("'full_prescribing_history' must be TRUE or FALSE.")}
@@ -174,18 +178,33 @@ set_up_data <- function(
   
   # Remove patients with 3 month discontinuation data
   
-  cprd_dataset <- cprd_dataset %>%
-    drop_na(stopdrug_3m_6mFU) 
-  
-  
-  ## Check patients after data
-  if (isTRUE(diagnosis)) {
-    print("#####################################")
-    print(paste("Patients with 3 month discontinuation data:", nrow(cprd_dataset)))
-    print("#####################################")
+  if (follow_up %in% c("3-months")) {
+    
+    cprd_dataset <- cprd_dataset %>%
+      drop_na(stopdrug_3m_3mFU) 
+    
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with 3 month discontinuation data (3-month follow-up):", nrow(cprd_dataset)))
+      print("#####################################")
+    }
+    
+  } else {
+    
+    cprd_dataset <- cprd_dataset %>%
+      drop_na(stopdrug_3m_6mFU) 
+    
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Patients with 3 month discontinuation data (6-month follow-up):", nrow(cprd_dataset)))
+      print("#####################################")
+    }
+    
   }
-  
-  
   
   
   # Create necessary variables
@@ -248,188 +267,386 @@ set_up_data <- function(
   #####################################################################################
   #####################################################################################
   
-  
-  # Select variables
-  
-  cprd_dataset <- cprd_dataset %>%
-    select(
-      # patient info
-      patid, dstartdate,
-      # Outcome
-      stopdrug_3m_6mFU,
-      stopdrug_6m_6mFU,
-      stopdrug_12m_6mFU,
-      # Drug taken
-      drugclass, drugsubstances, drugcombo,
-      # Extra info
-      only_one_prescription, alcohol_cat,
-      dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
-      predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
-      # Biomarkers
-      prehba1c, preegfr, prebmi, prealt, 
-      prehdl,
-      # Comorbidities
-      ## Hist of cardiovascular
-      predrug_cardio_event,
-      predrug_angina, predrug_myocardialinfarction, predrug_ihd, predrug_pad,
-      predrug_revasc, predrug_stroke, 
-      ## Heart problems
-      predrug_heart_event,
-      predrug_heartfailure, predrug_hypertension,
-      ### Microvascular
-      predrug_micro_event,
-      predrug_retinopathy, predrug_diabeticnephropathy, predrug_neuropathy,
-      ## CKD
-      preckdstage, 
-      ## CLD
-      predrug_cld,
-      ## Frailty proxy
-      predrug_frailty_proxy
-    ) %>%
-    as.data.frame() %>%
-    mutate(
-      imd2015_10 = ifelse(imd2015_10 %in% c(1, 2), 1, ifelse(imd2015_10 %in% c(3, 4), 2, ifelse(imd2015_10 %in% c(5, 6), 3, ifelse(imd2015_10 %in% c(7, 8), 4, 5))))
-    ) %>%
-    mutate_at(
-      c(
+  ## If the follow-up is 3-months:
+  if (follow_up %in% c("3-months")) {
+    
+    # Select variables
+    
+    cprd_dataset <- cprd_dataset %>%
+      select(
+        # patient info
+        patid, dstartdate,
         # Outcome
-        "stopdrug_3m_6mFU",
-        "stopdrug_6m_6mFU",
-        "stopdrug_12m_6mFU",
+        stopdrug_3m_3mFU,
+        stopdrug_6m_3mFU,
+        stopdrug_12m_3mFU,
+        # Drug taken
+        drugclass, drugsubstances, drugcombo,
         # Extra info
-        "only_one_prescription", "alcohol_cat",
-        "smoking_cat", "imd2015_10",
-        "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
+        only_one_prescription, alcohol_cat,
+        dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
+        predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
+        # Biomarkers
+        prehba1c, preegfr, prebmi, prealt, 
+        prehdl,
         # Comorbidities
         ## Hist of cardiovascular
-        "predrug_cardio_event",
-        "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
-        "predrug_revasc", "predrug_stroke",
+        predrug_cardio_event,
+        predrug_angina, predrug_myocardialinfarction, predrug_ihd, predrug_pad,
+        predrug_revasc, predrug_stroke, 
         ## Heart problems
-        "predrug_heart_event",
-        "predrug_heartfailure", "predrug_hypertension",
+        predrug_heart_event,
+        predrug_heartfailure, predrug_hypertension,
         ### Microvascular
-        "predrug_micro_event",
-        "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
-        # ## CKD
-        # "preckdstage", 
+        predrug_micro_event,
+        predrug_retinopathy, predrug_diabeticnephropathy, predrug_neuropathy,
+        ## CKD
+        preckdstage, 
         ## CLD
-        "predrug_cld",
+        predrug_cld,
         ## Frailty proxy
-        "predrug_frailty_proxy"
-      ),
-      as.factor
-    ) %>%
-    mutate(
-      preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage),
-      preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5")),
+        predrug_frailty_proxy
+      ) %>%
+      as.data.frame() %>%
+      mutate(
+        imd2015_10 = ifelse(imd2015_10 %in% c(1, 2), 1, ifelse(imd2015_10 %in% c(3, 4), 2, ifelse(imd2015_10 %in% c(5, 6), 3, ifelse(imd2015_10 %in% c(7, 8), 4, 5))))
+      ) %>%
+      mutate_at(
+        c(
+          # Outcome
+          "stopdrug_3m_3mFU",
+          "stopdrug_6m_3mFU",
+          "stopdrug_12m_3mFU",
+          # Extra info
+          "only_one_prescription", "alcohol_cat",
+          "smoking_cat", "imd2015_10",
+          "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
+          # Comorbidities
+          ## Hist of cardiovascular
+          "predrug_cardio_event",
+          "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
+          "predrug_revasc", "predrug_stroke",
+          ## Heart problems
+          "predrug_heart_event",
+          "predrug_heartfailure", "predrug_hypertension",
+          ### Microvascular
+          "predrug_micro_event",
+          "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
+          # ## CKD
+          # "preckdstage", 
+          ## CLD
+          "predrug_cld",
+          ## Frailty proxy
+          "predrug_frailty_proxy"
+        ),
+        as.factor
+      ) %>%
+      mutate(
+        preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage),
+        preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5")),
+        
+        drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
+        stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
+        stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
+        
+        # make drugline have a limit 5+ above 4
+        drugline = ifelse(drugline > 4, 5, drugline),
+        drugline = factor(drugline, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+")),
+        
+        # make numdrugs have a limit 3+ above 2
+        numdrugs = ifelse(numdrugs > 2, 3, numdrugs),
+        numdrugs = factor(numdrugs, levels = c(1, 2, 3), labels = c("1", "2", "3+"))
+      )
+    
+    
+    if (dataset == "full.dataset") {return(cprd_dataset)}
+    
+    
+    
+    
+    #####################################################################################
+    #####################################################################################
+    
+    # Remove patients without discontinuation data
+    
+    if (dataset %in% c("3m.disc.dataset", "3m.disc.dataset.dev", "3m.disc.dataset.val")) {
       
-      drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
-      stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
-      stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_3m_3mFU) %>%
+        mutate(row = 1:n())
       
-      # make drugline have a limit 5+ above 4
-      drugline = ifelse(drugline > 4, 5, drugline),
-      drugline = factor(drugline, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+")),
+      if (dataset == "3m.disc.dataset") {return(cprd_dataset %>% select(-row))}
       
-      # make numdrugs have a limit 3+ above 2
-      numdrugs = ifelse(numdrugs > 2, 3, numdrugs),
-      numdrugs = factor(numdrugs, levels = c(1, 2, 3), labels = c("1", "2", "3+"))
-    )
-  
-  
-  if (dataset == "full.dataset") {return(cprd_dataset)}
-  
-  
-  
-  
-  #####################################################################################
-  #####################################################################################
-  
-  # Remove patients without discontinuation data
-  
-  if (dataset %in% c("3m.disc.dataset", "3m.disc.dataset.dev", "3m.disc.dataset.val")) {
-    
-    cprd_dataset <- cprd_dataset %>%
-      drop_na(stopdrug_3m_6mFU) %>%
-      mutate(row = 1:n())
-    
-    if (dataset == "3m.disc.dataset") {return(cprd_dataset %>% select(-row))}
-    
-    set.seed(123)
-    cprd_dataset.dev <- cprd_dataset %>%
-      sample_frac(.7)
-    
-    cprd_dataset.val <- cprd_dataset %>%
-      filter(!(row %in% cprd_dataset.dev$row))
-    
-    
-    ## Check patients after data
-    if (isTRUE(diagnosis)) {
-      print("#####################################")
-      print(paste("Patients with 3m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
-      print("#####################################")
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 3m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "3m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "3m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
+    } else if (dataset %in% c("6m.disc.dataset", "6m.disc.dataset.dev", "6m.disc.dataset.val")) {
+      
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_6m_3mFU) %>%
+        mutate(row = 1:n())
+      
+      if (dataset == "6m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+      
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 6m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "6m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "6m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
+    } else if (dataset %in% c("12m.disc.dataset", "12m.disc.dataset.dev", "12m.disc.dataset.val")) {
+      
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_12m_3mFU) %>%
+        mutate(row = 1:n())
+      
+      if (dataset == "12m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+      
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 12m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "12m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "12m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
     }
     
-    if (dataset == "3m.disc.dataset.dev") {return(cprd_dataset.dev)}
-    if (dataset == "3m.disc.dataset.val") {return(cprd_dataset.val)}
-    
-    
-  } else if (dataset %in% c("6m.disc.dataset", "6m.disc.dataset.dev", "6m.disc.dataset.val")) {
-    
-    cprd_dataset <- cprd_dataset %>%
-      drop_na(stopdrug_6m_6mFU) %>%
-      mutate(row = 1:n())
-    
-    if (dataset == "6m.disc.dataset") {return(cprd_dataset %>% select(-row))}
-    
-    set.seed(123)
-    cprd_dataset.dev <- cprd_dataset %>%
-      sample_frac(.7)
-    
-    cprd_dataset.val <- cprd_dataset %>%
-      filter(!(row %in% cprd_dataset.dev$row))
-    
-    
-    ## Check patients after data
-    if (isTRUE(diagnosis)) {
-      print("#####################################")
-      print(paste("Patients with 6m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
-      print("#####################################")
-    }
-    
-    if (dataset == "6m.disc.dataset.dev") {return(cprd_dataset.dev)}
-    if (dataset == "6m.disc.dataset.val") {return(cprd_dataset.val)}
-    
-    
-  } else if (dataset %in% c("12m.disc.dataset", "12m.disc.dataset.dev", "12m.disc.dataset.val")) {
-    
-    cprd_dataset <- cprd_dataset %>%
-      drop_na(stopdrug_12m_6mFU) %>%
-      mutate(row = 1:n())
-    
-    if (dataset == "12m.disc.dataset") {return(cprd_dataset %>% select(-row))}
-    
-    set.seed(123)
-    cprd_dataset.dev <- cprd_dataset %>%
-      sample_frac(.7)
-    
-    cprd_dataset.val <- cprd_dataset %>%
-      filter(!(row %in% cprd_dataset.dev$row))
-    
-    
-    ## Check patients after data
-    if (isTRUE(diagnosis)) {
-      print("#####################################")
-      print(paste("Patients with 12m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
-      print("#####################################")
-    }
-    
-    if (dataset == "12m.disc.dataset.dev") {return(cprd_dataset.dev)}
-    if (dataset == "12m.disc.dataset.val") {return(cprd_dataset.val)}
     
     
   }
+  
+  
+  #####################################################################################
+  #####################################################################################
+  
+  ## If the follow-up is 6-months:
+  if (follow_up %in% c("6-months")) {
+    
+    # Select variables
+    
+    cprd_dataset <- cprd_dataset %>%
+      select(
+        # patient info
+        patid, dstartdate,
+        # Outcome
+        stopdrug_3m_6mFU,
+        stopdrug_6m_6mFU,
+        stopdrug_12m_6mFU,
+        # Drug taken
+        drugclass, drugsubstances, drugcombo,
+        # Extra info
+        only_one_prescription, alcohol_cat,
+        dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
+        predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
+        # Biomarkers
+        prehba1c, preegfr, prebmi, prealt, 
+        prehdl,
+        # Comorbidities
+        ## Hist of cardiovascular
+        predrug_cardio_event,
+        predrug_angina, predrug_myocardialinfarction, predrug_ihd, predrug_pad,
+        predrug_revasc, predrug_stroke, 
+        ## Heart problems
+        predrug_heart_event,
+        predrug_heartfailure, predrug_hypertension,
+        ### Microvascular
+        predrug_micro_event,
+        predrug_retinopathy, predrug_diabeticnephropathy, predrug_neuropathy,
+        ## CKD
+        preckdstage, 
+        ## CLD
+        predrug_cld,
+        ## Frailty proxy
+        predrug_frailty_proxy
+      ) %>%
+      as.data.frame() %>%
+      mutate(
+        imd2015_10 = ifelse(imd2015_10 %in% c(1, 2), 1, ifelse(imd2015_10 %in% c(3, 4), 2, ifelse(imd2015_10 %in% c(5, 6), 3, ifelse(imd2015_10 %in% c(7, 8), 4, 5))))
+      ) %>%
+      mutate_at(
+        c(
+          # Outcome
+          "stopdrug_3m_6mFU",
+          "stopdrug_6m_6mFU",
+          "stopdrug_12m_6mFU",
+          # Extra info
+          "only_one_prescription", "alcohol_cat",
+          "smoking_cat", "imd2015_10",
+          "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
+          # Comorbidities
+          ## Hist of cardiovascular
+          "predrug_cardio_event",
+          "predrug_angina", "predrug_myocardialinfarction", "predrug_ihd", "predrug_pad",
+          "predrug_revasc", "predrug_stroke",
+          ## Heart problems
+          "predrug_heart_event",
+          "predrug_heartfailure", "predrug_hypertension",
+          ### Microvascular
+          "predrug_micro_event",
+          "predrug_retinopathy", "predrug_diabeticnephropathy", "predrug_neuropathy",
+          # ## CKD
+          # "preckdstage", 
+          ## CLD
+          "predrug_cld",
+          ## Frailty proxy
+          "predrug_frailty_proxy"
+        ),
+        as.factor
+      ) %>%
+      mutate(
+        preckdstage = ifelse(is.na(preckdstage), "stage_0", preckdstage),
+        preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5")),
+        
+        drugclass = factor(drugclass, levels = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD")),
+        stopdrug_3m_3mFU_MFN_hist = ifelse(is.na(stopdrug_3m_3mFU_MFN_hist), 0, ifelse(stopdrug_3m_3mFU_MFN_hist > 0, 1, 0)),
+        stopdrug_3m_3mFU_MFN_hist = factor(stopdrug_3m_3mFU_MFN_hist),
+        
+        # make drugline have a limit 5+ above 4
+        drugline = ifelse(drugline > 4, 5, drugline),
+        drugline = factor(drugline, levels = c(1, 2, 3, 4, 5), labels = c("1", "2", "3", "4", "5+")),
+        
+        # make numdrugs have a limit 3+ above 2
+        numdrugs = ifelse(numdrugs > 2, 3, numdrugs),
+        numdrugs = factor(numdrugs, levels = c(1, 2, 3), labels = c("1", "2", "3+"))
+      )
+    
+    
+    if (dataset == "full.dataset") {return(cprd_dataset)}
+    
+    
+    
+    
+    #####################################################################################
+    #####################################################################################
+    
+    # Remove patients without discontinuation data
+    
+    if (dataset %in% c("3m.disc.dataset", "3m.disc.dataset.dev", "3m.disc.dataset.val")) {
+      
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_3m_6mFU) %>%
+        mutate(row = 1:n())
+      
+      if (dataset == "3m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+      
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 3m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "3m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "3m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
+    } else if (dataset %in% c("6m.disc.dataset", "6m.disc.dataset.dev", "6m.disc.dataset.val")) {
+      
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_6m_6mFU) %>%
+        mutate(row = 1:n())
+      
+      if (dataset == "6m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+      
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 6m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "6m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "6m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
+    } else if (dataset %in% c("12m.disc.dataset", "12m.disc.dataset.dev", "12m.disc.dataset.val")) {
+      
+      cprd_dataset <- cprd_dataset %>%
+        drop_na(stopdrug_12m_6mFU) %>%
+        mutate(row = 1:n())
+      
+      if (dataset == "12m.disc.dataset") {return(cprd_dataset %>% select(-row))}
+      
+      set.seed(123)
+      cprd_dataset.dev <- cprd_dataset %>%
+        sample_frac(.7)
+      
+      cprd_dataset.val <- cprd_dataset %>%
+        filter(!(row %in% cprd_dataset.dev$row))
+      
+      
+      ## Check patients after data
+      if (isTRUE(diagnosis)) {
+        print("#####################################")
+        print(paste("Patients with 12m discontinuation data: DEV", nrow(cprd_dataset.dev), ", VAL", nrow(cprd_dataset.val)))
+        print("#####################################")
+      }
+      
+      if (dataset == "12m.disc.dataset.dev") {return(cprd_dataset.dev)}
+      if (dataset == "12m.disc.dataset.val") {return(cprd_dataset.val)}
+      
+      
+    }
+    
+  }
+  
   
 }
 

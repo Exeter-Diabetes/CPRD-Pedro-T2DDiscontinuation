@@ -31,6 +31,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -41,6 +42,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -226,6 +228,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "6m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_12m_6mFU)
@@ -236,6 +239,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "6m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_12m_6mFU)
@@ -398,6 +402,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "12m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na()
@@ -408,6 +413,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
   dataset = "12m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na()
@@ -561,7 +567,7 @@ saveRDS(roc_dataset, "results/Models/Predictions/04.roc_multivariate_disc.rds")
 
 
 
-pdf("results/figures/04.roc_multivariate_disc.pdf", width = 7, height = 10)
+pdf("results/figures/04.roc_multivariate_disc.pdf", width = 12, height = 6)
 
 roc_dataset %>%
   mutate(
@@ -576,7 +582,7 @@ roc_dataset %>%
   scale_x_continuous("AUROC", limits = c(0.475, 0.65), breaks = seq(0.475, 0.65, 0.025)) +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "Metformin", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
   guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
-  facet_wrap(model ~ dataset, ncol = 1) +
+  facet_grid(dataset ~ model) +
   theme_bw() +
   theme(
     legend.position = "bottom",
@@ -585,7 +591,8 @@ roc_dataset %>%
     axis.text = element_text(size = 13),
     strip.text = element_text(size = 13),
     legend.title = element_text(size = 13),
-    legend.text = element_text(size = 13)
+    legend.text = element_text(size = 13),
+    panel.spacing = unit(0.3, "cm", data = NULL)
   )
 
 dev.off()
@@ -602,6 +609,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -623,6 +631,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "MFN", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -792,6 +801,7 @@ cprd_dataset.dev <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
@@ -813,6 +823,7 @@ cprd_dataset.val <- set_up_data(
   diagnosis = FALSE,
   therapies = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
   full_prescribing_history = TRUE
 ) %>%
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
