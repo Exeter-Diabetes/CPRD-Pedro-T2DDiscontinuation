@@ -48,6 +48,205 @@ cprd_dataset.val <- set_up_data(
   drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
 
+###########################################################
+###########################################################
+
+transformation_matrix <- NULL
+
+transformation_matrix[["dstartdate_dm_dur"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$dstartdate_dm_dur, na.rm = TRUE), sd = sd(cprd_dataset.dev$dstartdate_dm_dur, na.rm = TRUE)))
+transformation_matrix[["dstartdate_age"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$dstartdate_age, na.rm = TRUE), sd = sd(cprd_dataset.dev$dstartdate_age, na.rm = TRUE)))
+transformation_matrix[["prehba1c"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$prehba1c, na.rm = TRUE), sd = sd(cprd_dataset.dev$prehba1c, na.rm = TRUE)))
+transformation_matrix[["preegfr"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$preegfr, na.rm = TRUE), sd = sd(cprd_dataset.dev$preegfr, na.rm = TRUE)))
+transformation_matrix[["prebmi"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$prebmi, na.rm = TRUE), sd = sd(cprd_dataset.dev$prebmi, na.rm = TRUE)))
+transformation_matrix[["prealt"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$prealt, na.rm = TRUE), sd = sd(cprd_dataset.dev$prealt, na.rm = TRUE)))
+transformation_matrix[["prehdl"]] <- data.frame(cbind(mean = mean(cprd_dataset.dev$prehdl, na.rm = TRUE), sd = sd(cprd_dataset.dev$prehdl, na.rm = TRUE)))
+
+
+cprd_dataset.dev <- cprd_dataset.dev %>%
+  mutate(
+    imd2015_10 = as.numeric(imd2015_10),
+    drugline = as.numeric(drugline)
+  ) %>%
+  mutate(
+    dstartdate_dm_dur = (cprd_dataset.dev$dstartdate_dm_dur - transformation_matrix[["dstartdate_dm_dur"]][[1]])/transformation_matrix[["dstartdate_dm_dur"]][[2]],
+    dstartdate_age = (cprd_dataset.dev$dstartdate_age - transformation_matrix[["dstartdate_age"]][[1]])/transformation_matrix[["dstartdate_age"]][[2]],
+    prehba1c = (cprd_dataset.dev$prehba1c - transformation_matrix[["prehba1c"]][[1]])/transformation_matrix[["prehba1c"]][[2]],
+    preegfr = (cprd_dataset.dev$preegfr - transformation_matrix[["preegfr"]][[1]])/transformation_matrix[["preegfr"]][[2]],
+    prebmi = (cprd_dataset.dev$prebmi - transformation_matrix[["prebmi"]][[1]])/transformation_matrix[["prebmi"]][[2]],
+    prealt = (cprd_dataset.dev$prealt - transformation_matrix[["prealt"]][[1]])/transformation_matrix[["prealt"]][[2]],
+    prehdl = (cprd_dataset.dev$prehdl - transformation_matrix[["prehdl"]][[1]])/transformation_matrix[["prehdl"]][[2]]
+  ) %>%
+  mutate(ethnicity_5cat = factor(ethnicity_5cat, levels = c(0, 1, 2, 3, 4), labels = c("White", "Other", "Other" , "Other" , "Other"))) %>%
+  mutate(smoking_cat = factor(smoking_cat, levels = c("Active smoker", "Ex-smoker", "Non-smoker"), labels = c("Active smoker", "Other", "Other"))) %>%
+  mutate(alcohol_cat = factor(alcohol_cat, levels = c("Excess", "Harmful", "None", "Within limits"), labels = c("Excess/Harmful", "Excess/Harmful", "Within limits/None", "Within limits/None"))) %>%
+  mutate(preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage 0/1/2", "stage 0/1/2", "stage 0/1/2", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5")))
+
+
+cprd_dataset.val <- cprd_dataset.val %>%
+  mutate(
+    imd2015_10 = as.numeric(imd2015_10),
+    drugline = as.numeric(drugline)
+  ) %>%
+  mutate(
+    dstartdate_dm_dur = (cprd_dataset.val$dstartdate_dm_dur - transformation_matrix[["dstartdate_dm_dur"]][[1]])/transformation_matrix[["dstartdate_dm_dur"]][[2]],
+    dstartdate_age = (cprd_dataset.val$dstartdate_age - transformation_matrix[["dstartdate_age"]][[1]])/transformation_matrix[["dstartdate_age"]][[2]],
+    prehba1c = (cprd_dataset.val$prehba1c - transformation_matrix[["prehba1c"]][[1]])/transformation_matrix[["prehba1c"]][[2]],
+    preegfr = (cprd_dataset.val$preegfr - transformation_matrix[["preegfr"]][[1]])/transformation_matrix[["preegfr"]][[2]],
+    prebmi = (cprd_dataset.val$prebmi - transformation_matrix[["prebmi"]][[1]])/transformation_matrix[["prebmi"]][[2]],
+    prealt = (cprd_dataset.val$prealt - transformation_matrix[["prealt"]][[1]])/transformation_matrix[["prealt"]][[2]],
+    prehdl = (cprd_dataset.val$prehdl - transformation_matrix[["prehdl"]][[1]])/transformation_matrix[["prehdl"]][[2]]
+  ) %>%
+  mutate(ethnicity_5cat = factor(ethnicity_5cat, levels = c(0, 1, 2, 3, 4), labels = c("White", "Other", "Other" , "Other" , "Other"))) %>%
+  mutate(smoking_cat = factor(smoking_cat, levels = c("Active smoker", "Ex-smoker", "Non-smoker"), labels = c("Active smoker", "Other", "Other"))) %>%
+  mutate(alcohol_cat = factor(alcohol_cat, levels = c("Excess", "Harmful", "None", "Within limits"), labels = c("Excess/Harmful", "Excess/Harmful", "Within limits/None", "Within limits/None"))) %>%
+  mutate(preckdstage = factor(preckdstage, levels = c("stage_0", "stage_1", "stage_2", "stage_3a", "stage_3b", "stage_4", "stage_5"), labels = c("stage 0/1/2", "stage 0/1/2", "stage 0/1/2", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5", "stage 3/4/5")))
+
+
+roc_dataset <- NULL
+
+formula_high_vars <- "~ dstartdate_age + gender + imd2015_10 + prebmi + dstartdate_dm_dur + prehba1c + drugline + predrug_frailty_proxy + ethnicity_5cat"
+
+outcome <- "stopdrug_3m_6mFU"
+
+lm.3m.mfn.high_vars <- glm(formula = as.formula(paste0(outcome, formula_high_vars)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
+
+roc_dataset <- rbind(
+  roc_dataset,
+  pROC::ci(pROC::roc(
+  cprd_dataset.dev %>% filter(drugclass == "MFN") %>% select(all_of(outcome)) %>% unlist(),
+  predict(lm.3m.mfn.high_vars, type = "response", newdata = cprd_dataset.dev %>% filter(drugclass == "MFN"))
+    ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "MFN", dataset = "dev", variables = "high"),
+  pROC::ci(pROC::roc(
+    cprd_dataset.val %>% filter(drugclass == "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.mfn.high_vars, type = "response", newdata = cprd_dataset.val %>% filter(drugclass == "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "MFN", dataset = "val", variables = "high")
+)
+
+lm.3m.otherdrugs.high_vars <- glm(formula = as.formula(paste0(outcome, formula_high_vars, "+stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass != "MFN"), family = binomial())
+
+roc_dataset <- rbind(
+  roc_dataset,
+  pROC::ci(pROC::roc(
+    cprd_dataset.dev %>% filter(drugclass != "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.mfn.high_vars, type = "response", newdata = cprd_dataset.dev %>% filter(drugclass != "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "Other", dataset = "dev", variables = "high"),
+  pROC::ci(pROC::roc(
+    cprd_dataset.val %>% filter(drugclass != "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.mfn.high_vars, type = "response", newdata = cprd_dataset.val %>% filter(drugclass != "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "Other", dataset = "val", variables = "high")
+)
+
+
+formula_high_vars_extra <- "~ dstartdate_age + gender + imd2015_10 + prebmi + dstartdate_dm_dur + prehba1c + drugline + predrug_frailty_proxy + ethnicity_5cat + numdrugs + predrug_bloodmed + smoking_cat + predrug_statins + preegfr + prehdl"
+
+lm.3m.mfn.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra)), data = cprd_dataset.dev %>% filter(drugclass == "MFN"), family = binomial())
+
+roc_dataset <- rbind(
+  roc_dataset,
+  pROC::ci(pROC::roc(
+    cprd_dataset.dev %>% filter(drugclass == "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.mfn.high_vars_extra, type = "response", newdata = cprd_dataset.dev %>% filter(drugclass == "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "MFN", dataset = "dev", variables = "high_extra"),
+  pROC::ci(pROC::roc(
+    cprd_dataset.val %>% filter(drugclass == "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.mfn.high_vars_extra, type = "response", newdata = cprd_dataset.val %>% filter(drugclass == "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "MFN", dataset = "val", variables = "high_extra")
+)
+
+
+lm.3m.otherdrugs.high_vars_extra <- glm(formula = as.formula(paste0(outcome, formula_high_vars_extra, "+stopdrug_3m_3mFU_MFN_hist")), data = cprd_dataset.dev %>% filter(drugclass != "MFN"), family = binomial())
+
+
+roc_dataset <- rbind(
+  roc_dataset,
+  pROC::ci(pROC::roc(
+    cprd_dataset.dev %>% filter(drugclass != "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.otherdrugs.high_vars_extra, type = "response", newdata = cprd_dataset.dev %>% filter(drugclass != "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "Other", dataset = "dev", variables = "high_extra"),
+  pROC::ci(pROC::roc(
+    cprd_dataset.val %>% filter(drugclass != "MFN") %>% select(all_of(outcome)) %>% unlist(),
+    predict(lm.3m.otherdrugs.high_vars_extra, type = "response", newdata = cprd_dataset.val %>% filter(drugclass != "MFN"))
+  ), of = "thresholds") %>%
+    as.data.frame() %>%
+    mutate(model = "Other", dataset = "val", variables = "high_extra")
+)
+
+
+saveRDS(roc_dataset, "results/Models/Predictions/04.roc_plotting_multivariate_disc.rds")
+
+
+
+pdf("results/figures/04.roc_multivariate_disc.pdf", width = 8, height = 6)
+
+roc_dataset %>%
+  mutate(
+    model = factor(model, levels = c("MFN", "Other")),
+    dataset = factor(dataset, levels = c("dev", "val"), labels = c("Development", "Validation")),
+    variables = factor(variables, levels = c("high", "high_extra"), labels = c("Highlights", "Highlights + extra"))
+  ) %>%
+  ggplot() +
+  geom_abline(aes(intercept = 0, slope = 1), colour = "black", linetype = "dashed") +
+  geom_path(aes(x = 1 - specificity.2.5., y = sensitivity.2.5., colour = model), alpha = 0.4) +
+  geom_path(aes(x = 1 - specificity.50., y = sensitivity.50., colour = model)) +
+  geom_path(aes(x = 1 - specificity.97.5., y = sensitivity.97.5., colour = model), alpha = 0.4) +
+  scale_colour_manual(values = c("Other" = "black", "Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), 
+                    breaks = c("MFN", "Other"), labels = c("Metformin", "Other therapies"),
+                    name = "", guide = guide_legend(reverse = TRUE)) +
+  xlab("1 - Specificity") +
+  ylab("Sensitivity") +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  facet_grid(dataset ~ variables) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom"
+  )
+
+
+dev.off()
+
+###########################################################
+###########################################################
+
+
+# load dataset
+cprd_dataset.dev <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = FALSE,
+  therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
+  dataset = "3m.disc.dataset.dev",
+  follow_up = "6-months",
+  full_prescribing_history = TRUE
+) %>%
+  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
+
+# load dataset
+cprd_dataset.val <- set_up_data(
+  raw_data = "20240308_t2d_1stinstance",
+  diagnosis = FALSE,
+  therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "TZD", "SU"),
+  dataset = "3m.disc.dataset.val",
+  follow_up = "6-months",
+  full_prescribing_history = TRUE
+) %>%
+  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
+
+
+
 #:-------------------------------
 ## Fitting models
 
@@ -567,7 +766,7 @@ saveRDS(roc_dataset, "results/Models/Predictions/04.roc_multivariate_disc.rds")
 
 
 
-pdf("results/figures/04.roc_multivariate_disc.pdf", width = 12, height = 6)
+pdf("results/figures/04.auc_multivariate_disc.pdf", width = 12, height = 6)
 
 roc_dataset %>%
   mutate(
