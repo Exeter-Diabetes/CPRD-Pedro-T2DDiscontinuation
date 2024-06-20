@@ -201,27 +201,19 @@ dev.off()
 
 
 # load dataset
-cprd_dataset <- set_up_data(
+cprd_tables <- set_up_data(
   raw_data = "20240308_t2d_1stinstance",
   diagnosis = TRUE,
-  therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
+  therapies = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset",
   follow_up = "6-months",
   full_prescribing_history = TRUE
-)
+) %>%
+  # drop_na(-stopdrug_12m_6mFU)
+  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
 
 
 output_path <- "results/tables"
-
-
-cprd_tables <- cprd_dataset %>%
-  mutate(
-    prehdl_na = ifelse(!is.na(prehdl), "No", NA),
-    preegfr_na = ifelse(!is.na(preegfr), "No", NA),
-    prebmi_na = ifelse(!is.na(prebmi), "No", NA),
-    dstartdate_age_na = ifelse(!is.na(dstartdate_age), "No", NA),
-    dstartdate_dm_dur_na = ifelse(!is.na(dstartdate_dm_dur), "No", NA)
-  )
 
 
 vars <- c(
@@ -229,14 +221,12 @@ vars <- c(
   "stopdrug_3m_6mFU",
   "stopdrug_6m_6mFU",
   "stopdrug_12m_6mFU",
-  # Drug taken
-  "drugclass",
   # Extra info
-  "dstartdate_dm_dur", "dstartdate_dm_dur_na", "dstartdate_age", "dstartdate_age_na", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
+  "dstartdate_dm_dur", "dstartdate_age", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
-  "prehba1c", "preegfr", "preegfr_na", "prebmi", "prebmi_na",
-  "prehdl", "prehdl_na",
+  "prehba1c", "preegfr", "prebmi",
+  "prehdl",
   # Comorbidities
   ## Frailty proxy
   "predrug_frailty_proxy"
@@ -250,11 +240,8 @@ vars_cat <- c(
   "stopdrug_6m_6mFU",
   "stopdrug_12m_6mFU",
   # Extra info
-  "dstartdate_dm_dur_na", "dstartdate_age_na", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
+  "drugline", "numdrugs", "smoking_cat", "imd2015_10",
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
-  # Biomarkers
-  "preegfr_na", "prebmi_na",
-  "prehdl_na",
   # Comorbidities
   ## Frailty proxy
   "predrug_frailty_proxy"
@@ -271,7 +258,7 @@ table_characteristics_drugs <- CreateTableOne(
   test = TRUE
 )
 
-table_characteristics_drugs_print <- print(table_characteristics_drugs, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
+table_characteristics_drugs_print <- print(table_characteristics_drugs, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
 
 write.csv(table_characteristics_drugs_print, file = paste0(output_path, "/table_characteristics_drugs.csv"))
 
@@ -970,165 +957,165 @@ dev.off()
 
 
 
-### Missingness investigation
-
-pdf(paste0(output_path, "01.missingness_investigation.pdf"), width = 7, height = 12)
-
-cprd_dataset %>%
-  select(
-    drugclass,
-    # Biomarkers
-    precreatinine_blood, 
-    prealt, prehdl, predbp, presbp, prehba1c, 
-    preegfr, prebilirubin,
-    # Commorbidities
-    preckdstage, predrug_frailty_mild, predrug_frailty_moderate, 
-    predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina, 
-    predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd, 
-    predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy, 
-    predrug_fh_premature_cvd, 
-    predrug_haem_cancer, predrug_heartfailure, 
-    predrug_hypertension, predrug_ihd, predrug_myocardialinfarction, 
-    predrug_neuropathy, predrug_otherneuroconditions, predrug_pad, 
-    predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension, 
-    predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis, 
-    predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke, 
-    predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
-    predrug_benignprostatehyperplasia, predrug_micturition_control,
-    predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
-    predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
-    predrug_dka, predrug_osteoporosis, predrug_unstableangina, 
-    predrug_amputation,
-    hosp_admission_prev_year, hosp_admission_prev_year_count,
-    # Extra info
-    gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
-    ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs,
-    alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
-    CCI_index
-  ) %>%
-  gg_miss_upset()
-
-cprd_dataset %>%
-  filter(drugclass == "MFN") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("MFN") +
-  labs(x = NULL, y = "Missing (%)")
-
-cprd_dataset %>%
-  filter(drugclass == "DPP4") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("DPP4") +
-  labs(x = NULL, y = "Missing (%)")
-
-cprd_dataset %>%
-  filter(drugclass == "SGLT2") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("SGLT2") +
-  labs(x = NULL, y = "Missing (%)")
-
-cprd_dataset %>%
-  filter(drugclass == "GLP1") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("GLP1") +
-  labs(x = NULL, y = "Missing (%)")
-
-cprd_dataset %>%
-  filter(drugclass == "SU") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("SU") +
-  labs(x = NULL, y = "Missing (%)")
-
-cprd_dataset %>%
-  filter(drugclass == "TZD") %>%
-  gather(key, value) %>%
-  group_by(key) %>%
-  count(na = is.na(value)) %>%
-  pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
-  mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
-  ungroup() %>% 
-  mutate(Present = 100 - pct_missing) %>% 
-  gather(Key, value, 4:5) %>% 
-  mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
-  ggplot(aes(x = key, y = value, fill = Key)) +
-  geom_col(alpha = 0.85) +
-  scale_fill_manual(name = "", 
-                    values = c('tomato3', 'steelblue'), 
-                    labels = c("Missing", "Present")) +
-  coord_flip() +
-  ggtitle("TZD") +
-  labs(x = NULL, y = "Missing (%)")
-dev.off()
-
+# ### Missingness investigation
+# 
+# pdf(paste0(output_path, "01.missingness_investigation.pdf"), width = 7, height = 12)
+# 
+# cprd_dataset %>%
+#   select(
+#     drugclass,
+#     # Biomarkers
+#     precreatinine_blood, 
+#     prealt, prehdl, predbp, presbp, prehba1c, 
+#     preegfr, prebilirubin,
+#     # Commorbidities
+#     preckdstage, predrug_frailty_mild, predrug_frailty_moderate, 
+#     predrug_frailty_severe, predrug_primary_hhf, predrug_af, predrug_angina, 
+#     predrug_asthma, predrug_bronchiectasis, predrug_cld, predrug_copd, 
+#     predrug_cysticfibrosis, predrug_dementia, predrug_diabeticnephropathy, 
+#     predrug_fh_premature_cvd, 
+#     predrug_haem_cancer, predrug_heartfailure, 
+#     predrug_hypertension, predrug_ihd, predrug_myocardialinfarction, 
+#     predrug_neuropathy, predrug_otherneuroconditions, predrug_pad, 
+#     predrug_pulmonaryfibrosis, predrug_pulmonaryhypertension, 
+#     predrug_retinopathy, predrug_revasc, predrug_rheumatoidarthritis, 
+#     predrug_solid_cancer, predrug_solidorgantransplant, predrug_stroke, 
+#     predrug_tia, predrug_anxiety_disorders, predrug_medspecific_gi,
+#     predrug_benignprostatehyperplasia, predrug_micturition_control,
+#     predrug_volume_depletion, predrug_urinary_frequency, predrug_falls,
+#     predrug_lowerlimbfracture, predrug_incident_mi, predrug_incident_stroke,
+#     predrug_dka, predrug_osteoporosis, predrug_unstableangina, 
+#     predrug_amputation,
+#     hosp_admission_prev_year, hosp_admission_prev_year_count,
+#     # Extra info
+#     gender, prac_region, ethnicity_5cat, imd2015_10, dm_diag_age,
+#     ins_in_1_year, prebmi, smoking_cat, drugline, numdrugs,
+#     alcohol_cat, dstartdate_age, dstartdate_dm_dur, dstartmonth,
+#     CCI_index
+#   ) %>%
+#   gg_miss_upset()
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "MFN") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("MFN") +
+#   labs(x = NULL, y = "Missing (%)")
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "DPP4") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("DPP4") +
+#   labs(x = NULL, y = "Missing (%)")
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "SGLT2") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("SGLT2") +
+#   labs(x = NULL, y = "Missing (%)")
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "GLP1") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("GLP1") +
+#   labs(x = NULL, y = "Missing (%)")
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "SU") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("SU") +
+#   labs(x = NULL, y = "Missing (%)")
+# 
+# cprd_dataset %>%
+#   filter(drugclass == "TZD") %>%
+#   gather(key, value) %>%
+#   group_by(key) %>%
+#   count(na = is.na(value)) %>%
+#   pivot_wider(names_from = na, values_from = n, values_fill = 0) %>%
+#   mutate(pct_missing = (`TRUE`/sum(`TRUE`, `FALSE`))*100) %>%
+#   ungroup() %>% 
+#   mutate(Present = 100 - pct_missing) %>% 
+#   gather(Key, value, 4:5) %>% 
+#   mutate(Key = recode(Key, pct_missing = "Missing")) %>% 
+#   ggplot(aes(x = key, y = value, fill = Key)) +
+#   geom_col(alpha = 0.85) +
+#   scale_fill_manual(name = "", 
+#                     values = c('tomato3', 'steelblue'), 
+#                     labels = c("Missing", "Present")) +
+#   coord_flip() +
+#   ggtitle("TZD") +
+#   labs(x = NULL, y = "Missing (%)")
+# dev.off()
+# 
 
 
 
