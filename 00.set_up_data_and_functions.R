@@ -122,6 +122,23 @@ set_up_data <- function(
     print("#####################################")
   }
   
+  ###############################################
+  
+  # Remove patients prescribed other glucose-lowering therapies as 1st line
+  if (!("MFN" %in% therapies)) {
+    
+    cprd_dataset <- cprd_dataset %>%
+      filter(drugline != 1)
+    
+    ## Check patients after data
+    if (isTRUE(diagnosis)) {
+      print("#####################################")
+      print(paste("Only 2nd-line therapies:", nrow(cprd_dataset)))
+      print("#####################################")
+    }
+    
+  }
+  
   
   ###############################################
   
@@ -270,6 +287,7 @@ set_up_data <- function(
   ## If the follow-up is 3-months:
   if (follow_up %in% c("3-months")) {
     
+    
     # Select variables
     
     cprd_dataset <- cprd_dataset %>%
@@ -283,11 +301,11 @@ set_up_data <- function(
         # Drug taken
         drugclass, drugsubstances, drugcombo,
         # Extra info
-        only_one_prescription, alcohol_cat,
+        only_one_prescription,
         dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
         predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
         # Biomarkers
-        prehba1c, preegfr, prebmi, prealt, 
+        prehba1c, preegfr, prebmi, 
         prehdl,
         # Comorbidities
         ## Hist of cardiovascular
@@ -318,7 +336,7 @@ set_up_data <- function(
           "stopdrug_6m_3mFU",
           "stopdrug_12m_3mFU",
           # Extra info
-          "only_one_prescription", "alcohol_cat",
+          "only_one_prescription",
           "smoking_cat", "imd2015_10",
           "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
           # Comorbidities
@@ -476,11 +494,11 @@ set_up_data <- function(
         # Drug taken
         drugclass, drugsubstances, drugcombo,
         # Extra info
-        only_one_prescription, alcohol_cat,
+        only_one_prescription,
         dstartdate_dm_dur, dstartdate_age, drugline, numdrugs, smoking_cat, imd2015_10,
         predrug_statins, stopdrug_3m_3mFU_MFN_hist, ethnicity_5cat, gender, predrug_bloodmed,
         # Biomarkers
-        prehba1c, preegfr, prebmi, prealt, 
+        prehba1c, preegfr, prebmi, 
         prehdl,
         # Comorbidities
         ## Hist of cardiovascular
@@ -511,7 +529,7 @@ set_up_data <- function(
           "stopdrug_6m_6mFU",
           "stopdrug_12m_6mFU",
           # Extra info
-          "only_one_prescription", "alcohol_cat",
+          "only_one_prescription",
           "smoking_cat", "imd2015_10",
           "predrug_statins", "ethnicity_5cat", "gender", "predrug_bloodmed",
           # Comorbidities
