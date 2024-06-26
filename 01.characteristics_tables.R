@@ -11,6 +11,7 @@ setwd("Samples/T2D_Discontinuation")
 source("code/00.set_up_data_and_functions.R")
 
 # load libraries
+library(tidyverse)
 library(ggplot2)
 library(tableone)
 library(naniar)
@@ -210,7 +211,8 @@ cprd_tables <- set_up_data(
   full_prescribing_history = TRUE
 ) %>%
   # drop_na(-stopdrug_12m_6mFU)
-  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU)
+  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU) %>%
+  mutate(drugline = factor(drugline, levels = c("1", "2", "3", "4", "5+"), labels = c("1", "2", "3", "4+", "4+")))
 
 
 output_path <- "results/tables"
