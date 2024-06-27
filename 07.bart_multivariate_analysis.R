@@ -137,11 +137,11 @@ plot_pooled_3m.overall <- calibration_plot(
   obs = "stopdrug_3m_6mFU", 
   pred = "pred",
   group = "grouping",
-  y_lim = c(0, 0.6), 
-  x_lim = c(0, 0.6), 
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
@@ -153,11 +153,11 @@ plot_pooled_3m.drugs <- calibration_plot(
   obs = "stopdrug_3m_6mFU", 
   pred = "pred", 
   group = "drugclass",
-  y_lim = c(0, 0.6), 
-  x_lim = c(0, 0.6), 
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = " ", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
@@ -257,11 +257,11 @@ plot_pooled_6m.overall <- calibration_plot(
   obs = "stopdrug_6m_6mFU", 
   pred = "pred",
   group = "grouping",
-  y_lim = c(0, 0.6),
-  x_lim = c(0, 0.6),
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
@@ -273,17 +273,17 @@ plot_pooled_6m.drugs <- calibration_plot(
   obs = "stopdrug_6m_6mFU", 
   pred = "pred", 
   group = "drugclass",
-  y_lim = c(0, 0.6),
-  x_lim = c(0, 0.6),
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = " ", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
 
-# 
-# 
+
+
 # pROC::roc(response = cprd_dataset.6m %>%
 #             select(stopdrug_6m_6mFU) %>%
 #             mutate(stopdrug_6m_6mFU = factor(stopdrug_6m_6mFU)) %>%
@@ -291,15 +291,15 @@ plot_pooled_6m.drugs <- calibration_plot(
 #           predictor = bartmachine_full_model_6m$p_hat, ci = TRUE)
 
 
-roc_coords_6m <- pROC::ci(pROC::roc(
-  cprd_dataset.6m %>%
-    select(stopdrug_6m_6mFU) %>%
-    mutate(stopdrug_6m_6mFU = factor(stopdrug_6m_6mFU)) %>%
-    unlist(),
-  bartmachine_full_model_6m$p_hat
-), of = "thresholds")
-
-saveRDS(roc_coords_6m, "results/Models/bartmachine/roc_coords_6m.rds")
+# roc_coords_6m <- pROC::ci(pROC::roc(
+#   cprd_dataset.6m %>%
+#     select(stopdrug_6m_6mFU) %>%
+#     mutate(stopdrug_6m_6mFU = factor(stopdrug_6m_6mFU)) %>%
+#     unlist(),
+#   bartmachine_full_model_6m$p_hat
+# ), of = "thresholds")
+# 
+# saveRDS(roc_coords_6m, "results/Models/bartmachine/roc_coords_6m.rds")
 
 roc_coords_6m <- readRDS("results/Models/bartmachine/roc_coords_6m.rds")
 
@@ -348,11 +348,11 @@ plot_pooled_12m.overall <- calibration_plot(
   obs = "stopdrug_12m_6mFU", 
   pred = "pred",
   group = "grouping",
-  y_lim = c(0, 0.7), 
-  x_lim = c(0, 0.7), 
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
@@ -363,12 +363,12 @@ plot_pooled_12m.drugs <- calibration_plot(
   data = cprd_dataset.12m %>% mutate(pred = bartmachine_full_model_12m$p_hat) %>% mutate(stopdrug_12m_6mFU = as.numeric(stopdrug_12m_6mFU)-1), 
   obs = "stopdrug_12m_6mFU", 
   pred = "pred", 
-  group = "drugclass",
-  y_lim = c(0, 0.7), 
-  x_lim = c(0, 0.7), 
+  group = "drugclass", 
   nTiles = 10)$calibration_plot +
+  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
-  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = " ", guide = guide_legend(reverse = TRUE)) +
+  scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
     legend.position = "bottom"
   )
@@ -386,9 +386,9 @@ patchwork::wrap_plots(
   
   plot_pooled_6m.drugs,
   
-  plot_pooled_3m.overall,
+  plot_pooled_12m.overall,
   
-  plot_pooled_3m.drugs,
+  plot_pooled_12m.drugs,
   
   nrow = 3, ncol = 2
   
