@@ -19,7 +19,7 @@ library(patchwork)
 
 # load dataset
 cprd_dataset <- set_up_data(
-  raw_data = "20240308_t2d_1stinstance",
+  raw_data = "20240814_t2d_1stinstance",
   diagnosis = TRUE,
   therapies = c("MFN", "GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "full.dataset",
@@ -203,7 +203,7 @@ dev.off()
 
 # load dataset
 cprd_tables <- set_up_data(
-  raw_data = "20240308_t2d_1stinstance",
+  raw_data = "20240814_t2d_1stinstance",
   diagnosis = TRUE,
   therapies = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"),
   dataset = "3m.disc.dataset",
@@ -211,7 +211,7 @@ cprd_tables <- set_up_data(
   full_prescribing_history = TRUE
 ) %>%
   # drop_na(-stopdrug_12m_6mFU)
-  drop_na(-stopdrug_6m_6mFU, -stopdrug_12m_6mFU) %>%
+  drop_na(-prehdl, -stopdrug_6m_6mFU, -stopdrug_12m_6mFU) %>%
   mutate(drugline = factor(drugline, levels = c("1", "2", "3", "4", "5+"), labels = c("1", "2", "3", "4+", "4+")))
 
 
@@ -228,7 +228,6 @@ vars <- c(
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
   # Biomarkers
   "prehba1c", "preegfr", "prebmi",
-  "prehdl",
   # Comorbidities
   ## Frailty proxy
   "predrug_frailty_proxy"
@@ -968,7 +967,7 @@ dev.off()
 #     drugclass,
 #     # Biomarkers
 #     precreatinine_blood, 
-#     prealt, prehdl, predbp, presbp, prehba1c, 
+#     prealt, predbp, presbp, prehba1c, 
 #     preegfr, prebilirubin,
 #     # Commorbidities
 #     preckdstage, predrug_frailty_mild, predrug_frailty_moderate, 
