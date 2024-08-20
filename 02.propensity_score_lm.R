@@ -44,8 +44,7 @@ drug.pscores <- SumStat(
     "dstartdate_dm_dur", "dstartdate_age", "drugline", "numdrugs", 
     "smoking_cat", "imd2015_10", "gender",
     # Biomarkers
-    "prehba1c", "preegfr", "prebmi", "prealt", 
-    "prehdl"
+    "prehba1c", "preegfr", "prebmi", "prealt"
   ), collapse = "+"))),
   data = cprd_dataset %>% mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"))),
   weight = c("overlap", "IPW")
