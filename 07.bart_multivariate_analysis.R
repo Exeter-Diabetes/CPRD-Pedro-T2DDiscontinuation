@@ -209,6 +209,27 @@ plot_roc_3m
 dev.off()
 
 
+pdf("results/figures/07.easd_24_roc_3m_overall.pdf", width = 5, height = 5)
+
+roc_coords_3m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_abline(aes(intercept = 0, slope = 1), colour = "black", linetype = "dashed") +
+  geom_path(aes(x = 1 - specificity.2.5., y = sensitivity.2.5.), alpha = 0.4) +
+  geom_path(aes(x = 1 - specificity.50., y = sensitivity.50.)) +
+  geom_path(aes(x = 1 - specificity.97.5., y = sensitivity.97.5.), alpha = 0.4) +
+  annotate("label", x = 0.60, y = 0.125, size = 7, label = paste0("AUROC=", signif(roc_values_3m_overall[2], digits = 3), ")")) + 
+  scale_x_continuous("1 - Specificity", limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  scale_y_continuous("Sensitivity", limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 20)
+  )
+
+dev.off()
+
 
 # Run model
 if (class(try(
