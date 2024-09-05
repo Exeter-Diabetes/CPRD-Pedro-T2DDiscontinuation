@@ -1603,6 +1603,220 @@ dev.off()
 ###############################################################################
 ###############################################################################
 
+pdf("results/figures/03.easd_24_discontinuation_glp1.pdf", width = 6, height = 2)
+
+cprd_dataset %>%
+  group_by(drugclass) %>%
+  mutate(total_num_drug = n()) %>%
+  group_by(drugclass, stopdrug_3m_6mFU) %>%
+  mutate(total_num_drug_disc_3m = n()) %>%
+  ungroup() %>%
+  mutate(perc_3m = total_num_drug_disc_3m/total_num_drug) %>%
+  select(drugclass, perc_3m, stopdrug_3m_6mFU) %>%
+  unique() %>%
+  filter(stopdrug_3m_6mFU == 1) %>%
+  select(-stopdrug_3m_6mFU) %>%
+  left_join(
+    cprd_dataset %>%
+      drop_na(stopdrug_6m_6mFU) %>%
+      group_by(drugclass) %>%
+      mutate(total_num_drug = n()) %>%
+      group_by(drugclass, stopdrug_6m_6mFU) %>%
+      mutate(total_num_drug_disc_6m = n()) %>%
+      ungroup() %>%
+      mutate(perc_6m = total_num_drug_disc_6m/total_num_drug) %>%
+      select(drugclass, perc_6m, stopdrug_6m_6mFU) %>%
+      unique() %>%
+      filter(stopdrug_6m_6mFU == 1) %>%
+      select(-stopdrug_6m_6mFU),
+    by = c("drugclass")
+  ) %>%
+  left_join(
+    cprd_dataset %>%
+      drop_na(stopdrug_12m_6mFU) %>%
+      group_by(drugclass) %>%
+      mutate(total_num_drug = n()) %>%
+      group_by(drugclass, stopdrug_12m_6mFU) %>%
+      mutate(total_num_drug_disc_12m = n()) %>%
+      ungroup() %>%
+      mutate(perc_12m = total_num_drug_disc_12m/total_num_drug) %>%
+      select(drugclass, perc_12m, stopdrug_12m_6mFU) %>%
+      unique() %>%
+      filter(stopdrug_12m_6mFU == 1) %>%
+      select(-stopdrug_12m_6mFU),
+    by = c("drugclass")
+  ) %>%
+  mutate(
+    perc_12m = perc_12m-perc_6m,
+    perc_6m = perc_6m-perc_3m
+  ) %>%
+  gather("key", "value", -drugclass) %>%
+  mutate(
+    drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "TZD", "SU")),
+    key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+  ) %>%
+  filter(drugclass == "GLP1") %>%
+  ggplot(aes(x = value, y = drugclass, fill = drugclass, alpha = key)) +
+  geom_bar(stat = "identity", colour = "black") +
+  scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), 
+                    breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")),
+                    name = "Therapy", guide = guide_legend(reverse = TRUE)) +
+  scale_y_discrete(limits = rev, breaks = c("GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
+  scale_alpha_discrete(limits = rev, range = c(1, 0.4), breaks = c("perc_12m", "perc_6m", "perc_3m"), labels = c("12-month", "6-month", "3-month"), name = "Discontinuation", guide = guide_legend(reverse = TRUE, row = 1)) +
+  scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+  guides(fill = "none") +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    legend.box = "vertical",
+    plot.title.position = "plot",
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 15),
+    axis.ticks.y = element_blank()
+  )
+
+dev.off()
+
+
+pdf("results/figures/03.easd_24_discontinuation_by_variable.pdf", width = 7, height = 10)
+
+patchwork::wrap_plots(
+  
+  # Sex
+  discontinuation_per_drug_not_combined %>%
+    gather("key", "value", -drugclass, -analysis_var, -group, -variable) %>%
+    mutate(
+      key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+    ) %>%
+    filter(variable == "gender" & key == "perc_3m" & drugclass == "GLP1") %>%
+    ggplot(aes(y = group, x = value, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("other" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("other"), labels = c("Other glucose-lowering therapies"), name = " ", guide = guide_legend(reverse = FALSE)) +
+    scale_y_discrete(limits = rev, labels = c("Female", "Male")) +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+    ggtitle("Sex") +
+    facet_wrap(~drugclass, nrow = 1, labeller = as_labeller(c("other" = "Other glucose-lowering therapies"))) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      plot.title.position = "plot",
+      legend.position = "bottom",
+      strip.text.x = element_blank()
+    ),
+  
+  # BMI
+  discontinuation_per_drug_not_combined %>%
+    gather("key", "value", -drugclass, -analysis_var, -group, -variable) %>%
+    mutate(
+      key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+    ) %>%
+    filter(variable == "bmi" & key == "perc_3m" & drugclass == "GLP1") %>%
+    ggplot(aes(y = group, x = value, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("other" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("other"), labels = c("Other glucose-lowering therapies"), name = " ", guide = guide_legend(reverse = FALSE)) +
+    scale_y_discrete(limits = rev, labels = c("35+", "30-34.9", "25-29.9", "<25")) +
+    ggtitle("BMI, kg/m2") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+    facet_wrap(~drugclass, nrow = 1, labeller = as_labeller(c("other" = "Other glucose-lowering therapies"))) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      plot.title.position = "plot",
+      legend.position = "bottom",
+      strip.text.x = element_blank()
+    ),
+  
+  # Statins
+  discontinuation_per_drug_not_combined %>%
+    gather("key", "value", -drugclass, -analysis_var, -group, -variable) %>%
+    mutate(
+      key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+    ) %>%
+    filter(variable == "statins" & key == "perc_3m" & drugclass == "GLP1") %>%
+    ggplot(aes(y = group, x = value, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("other" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("other"), labels = c("Other glucose-lowering therapies"), name = " ", guide = guide_legend(reverse = FALSE)) +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("Statins") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+    facet_wrap(~drugclass, nrow = 1, labeller = as_labeller(c("other" = "Other glucose-lowering therapies"))) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      plot.title.position = "plot",
+      legend.position = "bottom",
+      strip.text.x = element_blank()
+    ),
+  
+  # stopping metformin
+  discontinuation_per_drug_not_combined %>%
+    gather("key", "value", -drugclass, -analysis_var, -group, -variable) %>%
+    mutate(
+      key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+    ) %>%
+    filter(variable == "stopdrug_MFN" & key == "perc_3m" & drugclass == "GLP1") %>%
+    ggplot(aes(y = group, x = value, fill = drugclass)) +
+    geom_col() +
+    scale_fill_manual(values = c("other" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("other"), labels = c("Other glucose-lowering therapies"), name = " ", guide = guide_legend(reverse = FALSE)) +
+    scale_y_discrete(limits = rev, breaks = c(0, 1), labels = c("No", "Yes")) +
+    ggtitle("History of Metformin discontinuation within 3-months") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+    facet_wrap(~drugclass, nrow = 1, labeller = as_labeller(c("other" = "Other glucose-lowering therapies"))) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      plot.title.position = "plot",
+      legend.position = "bottom",
+      strip.text.x = element_blank()
+    ),
+  
+  
+  # Ethnicity
+  discontinuation_per_drug_not_combined %>%
+    gather("key", "value", -drugclass, -analysis_var, -group, -variable) %>%
+    mutate(
+      key = factor(key, levels = c("perc_12m", "perc_6m", "perc_3m"))
+    ) %>%
+    filter(variable == "ethnicity" & key == "perc_3m" & drugclass == "GLP1") %>%
+    ggplot(aes(y = group, x = value, fill = drugclass)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = c("GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU"), name = " ", guide = guide_legend(reverse = TRUE)) +
+    ggtitle("Ethnicity") +
+    scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+    facet_wrap(~drugclass, nrow = 1, labeller = as_labeller(c("other" = "Other glucose-lowering therapies"))) +
+    theme_bw() +
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    theme(
+      plot.title.position = "plot",
+      legend.position = "bottom",
+      strip.text.x = element_blank()
+    )
+  
+  
+  , ncol = 1
+  
+) + 
+  plot_layout(
+    guides = "collect",
+    height = c(2, 4, 2, 2, 4)
+  ) &
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot",
+    legend.box = 'vertical',
+    axis.title.y = element_blank(),
+    axis.title.x = element_text(size = 13),
+    axis.text.y = element_text(size = 20),
+    axis.text.x = element_text(size = 20),
+    panel.spacing = unit(0.3, "cm", data = NULL)
+  )
+
+
+dev.off()
+
+
 
 pdf("results/figures/03.discontinuation_by_variable.pdf", width = 7, height = 15)
 
