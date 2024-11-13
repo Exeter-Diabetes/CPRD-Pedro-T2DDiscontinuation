@@ -15,6 +15,8 @@ source("code/00.set_up_data_and_functions.R")
 library(tidyverse)
 library(MatchIt)
 library(qpdf)
+library(unihtee)
+library(data.table)
 
 ###############################################################################
 ###############################################################################
@@ -80,6 +82,214 @@ cprd_dataset.val <- cprd_dataset.val %>%
     probabilities.only_dataset,
     by = c("patid", "dstartdate")
   )
+
+
+
+###############################################################################
+###############################################################################
+######################### Testing heterogeneity ###############################
+###############################################################################
+###############################################################################
+
+## set up dataset
+variables_needed <- c(
+  # outcome
+  "stopdrug_3m_6mFU",
+  # treatment
+  "drugclass",
+  # variables
+  "dstartdate_dm_dur", "dstartdate_age", "drugline", "numdrugs", "smoking_cat",
+  "imd2015_10", "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat",
+  "gender", "predrug_bloodmed", "prehba1c", "preegfr", "prebmi", 
+  # "prehdl", 
+  # "predrug_cardio_event", "predrug_angina", "predrug_myocardialinfarction", 
+  # "predrug_ihd", "predrug_pad", "predrug_revasc", "predrug_stroke", 
+  # "predrug_heart_event", "predrug_heartfailure", "predrug_hypertension",
+  # "predrug_micro_event", "predrug_retinopathy", "predrug_diabeticnephropathy",
+  # "predrug_neuropathy", "preckdstage", "predrug_cld", 
+  "predrug_frailty_proxy"
+)
+
+variables_needed_cat <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  select_if(is.factor) %>% 
+  colnames()
+
+#:---- GLP1 vs DPP4
+heterogeneity_glp1_dpp4 <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("GLP1", "DPP4")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_glp1_dpp4_p_values <- unihtee(
+  data = heterogeneity_glp1_dpp4 %>% as.data.table(),
+  confounders = colnames(heterogeneity_glp1_dpp4)[-c(1,2)],
+  modifiers = colnames(heterogeneity_glp1_dpp4)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- GLP1 vs SU
+heterogeneity_glp1_su <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("GLP1", "SU")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_glp1_su_p_values <- unihtee(
+  data = heterogeneity_glp1_su %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_glp1_su)[-c(1,2)],
+  modifiers = colnames(heterogeneity_glp1_su)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- GLP1 vs TZD
+heterogeneity_glp1_tzd <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("GLP1", "TZD")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_glp1_tzd_p_values <- unihtee(
+  data = heterogeneity_glp1_tzd %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_glp1_tzd)[-c(1,2)],
+  modifiers = colnames(heterogeneity_glp1_tzd)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SGLT2 vs DPP4
+heterogeneity_sglt2_dpp4 <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("SGLT2", "DPP4")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_sglt2_dpp4_p_values <- unihtee(
+  data = heterogeneity_sglt2_dpp4 %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_sglt2_dpp4)[-c(1,2)],
+  modifiers = colnames(heterogeneity_sglt2_dpp4)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SGLT2 vs GLP1
+heterogeneity_sglt2_glp1 <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("SGLT2", "GLP1")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_sglt2_glp1_p_values <- unihtee(
+  data = heterogeneity_sglt2_glp1 %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_sglt2_glp1)[-c(1,2)],
+  modifiers = colnames(heterogeneity_sglt2_glp1)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SGLT2 vs SU
+heterogeneity_sglt2_su <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("SGLT2", "SU")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_sglt2_su_p_values <- unihtee(
+  data = heterogeneity_sglt2_su %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_sglt2_su)[-c(1,2)],
+  modifiers = colnames(heterogeneity_sglt2_su)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SGLT2 vs TZD
+heterogeneity_sglt2_tzd <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("SGLT2", "TZD")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_sglt2_tzd_p_values <- unihtee(
+  data = heterogeneity_sglt2_tzd %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_sglt2_tzd)[-c(1,2)],
+  modifiers = colnames(heterogeneity_sglt2_tzd)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- TZD vs DPP4
+heterogeneity_tzd_dpp4 <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("TZD", "DPP4")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_tzd_dpp4_p_values <- unihtee(
+  data = heterogeneity_tzd_dpp4 %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_tzd_dpp4)[-c(1,2)],
+  modifiers = colnames(heterogeneity_tzd_dpp4)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- TZD vs SU
+heterogeneity_tzd_su <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("TZD", "SU")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_tzd_su_p_values <- unihtee(
+  data = heterogeneity_tzd_su %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_tzd_su)[-c(1,2)],
+  modifiers = colnames(heterogeneity_tzd_su)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SU vs DPP4
+heterogeneity_su_dpp4 <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(drugclass %in% c("SU", "DPP4")) %>%
+  mutate(drugclass = factor(drugclass)) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_su_dpp4_p_values <- unihtee(
+  data = heterogeneity_su_dpp4 %>% as.matrix() %>% as.data.table(),
+  confounders = colnames(heterogeneity_su_dpp4)[-c(1,2)],
+  modifiers = colnames(heterogeneity_su_dpp4)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+
+
+pdf("results/figures/05.heterogeneity_analysis_p_values.pdf")
+rbind(
+  heterogeneity_glp1_dpp4_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "GLP1 vs DPP4"),
+  heterogeneity_glp1_su_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "GLP1 vs SU"),
+  heterogeneity_glp1_tzd_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "GLP1 vs TZD"),
+  heterogeneity_sglt2_dpp4_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SGLT2 vs DPP4"),
+  heterogeneity_sglt2_glp1_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SGLT2 vs GLP1"),
+  heterogeneity_sglt2_su_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SGLT2 vs SU"),
+  heterogeneity_sglt2_tzd_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SGLT2 vs TZD"),
+  heterogeneity_tzd_dpp4_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "TZD vs DPP4"),
+  heterogeneity_tzd_su_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "TZD vs SU"),
+  heterogeneity_su_dpp4_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SU vs DPP4")
+) %>%
+  as.data.frame() %>%
+  ggplot(aes(x = modifier, y = -log(p_value_fdr), colour = comparison)) +
+  geom_hline(yintercept = -log(0.5), colour = "black", linetype = "dashed") +
+  geom_point() +
+  scale_y_continuous(trans='log10') +
+  coord_flip() +
+  theme_bw()
+dev.off()
+
+
 
 
 
