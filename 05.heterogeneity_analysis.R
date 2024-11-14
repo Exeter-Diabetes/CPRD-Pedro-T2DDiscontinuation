@@ -282,7 +282,7 @@ rbind(
 ) %>%
   as.data.frame() %>%
   ggplot(aes(x = modifier, y = -log(p_value_fdr), colour = comparison)) +
-  geom_hline(yintercept = -log(0.5), colour = "black", linetype = "dashed") +
+  geom_hline(yintercept = -log(0.05), colour = "black", linetype = "dashed") +
   geom_point() +
   scale_y_continuous(trans='log10') +
   coord_flip() +
@@ -291,8 +291,102 @@ dev.off()
 
 
 
+#:--------------------------------------------------------------------------------------
 
 
+
+#:---- GLP1 vs all
+heterogeneity_glp1_all <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(!(drugclass %in% c("MFN"))) %>%
+  mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"), labels = c("GLP1", "ALL", "ALL", "ALL", "ALL"))) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_glp1_all_p_values <- unihtee(
+  data = heterogeneity_glp1_all %>% as.data.table(),
+  confounders = colnames(heterogeneity_glp1_all)[-c(1,2)],
+  modifiers = colnames(heterogeneity_glp1_all)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- DPP4 vs all
+heterogeneity_dpp4_all <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(!(drugclass %in% c("MFN"))) %>%
+  mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"), labels = c("ALL", "DPP4", "ALL", "ALL", "ALL"))) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_dpp4_all_p_values <- unihtee(
+  data = heterogeneity_dpp4_all %>% as.data.table(),
+  confounders = colnames(heterogeneity_dpp4_all)[-c(1,2)],
+  modifiers = colnames(heterogeneity_dpp4_all)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SGLT2 vs all
+heterogeneity_sglt2_all <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(!(drugclass %in% c("MFN"))) %>%
+  mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"), labels = c("ALL", "ALL", "SGLT2", "ALL", "ALL"))) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_sglt2_all_p_values <- unihtee(
+  data = heterogeneity_sglt2_all %>% as.data.table(),
+  confounders = colnames(heterogeneity_sglt2_all)[-c(1,2)],
+  modifiers = colnames(heterogeneity_sglt2_all)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- SU vs all
+heterogeneity_su_all <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(!(drugclass %in% c("MFN"))) %>%
+  mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"), labels = c("ALL", "ALL", "ALL", "SU", "ALL"))) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_su_all_p_values <- unihtee(
+  data = heterogeneity_su_all %>% as.data.table(),
+  confounders = colnames(heterogeneity_su_all)[-c(1,2)],
+  modifiers = colnames(heterogeneity_su_all)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+#:---- TZD vs all
+heterogeneity_tzd_all <- cprd_dataset.dev %>%
+  select(all_of(variables_needed)) %>%
+  filter(!(drugclass %in% c("MFN"))) %>%
+  mutate(drugclass = factor(drugclass, levels = c("GLP1", "DPP4", "SGLT2", "SU", "TZD"), labels = c("ALL", "ALL", "ALL", "ALL", "TZD"))) %>%
+  mutate_all(as.numeric) %>% mutate_at(all_of(variables_needed_cat), ~ . - 1)
+
+## targeted maximum likelihood estimates and testing procedure
+heterogeneity_tzd_all_p_values <- unihtee(
+  data = heterogeneity_tzd_all %>% as.data.table(),
+  confounders = colnames(heterogeneity_tzd_all)[-c(1,2)],
+  modifiers = colnames(heterogeneity_tzd_all)[-c(1,2)],
+  exposure = "drugclass", outcome = "stopdrug_3m_6mFU", outcome_type = "binary", effect = "relative", estimator = "tmle"
+)
+
+
+pdf("results/figures/05.heterogeneity_vs_all_analysis_p_values.pdf")
+rbind(
+  heterogeneity_glp1_all_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "GLP1 vs all"),
+  heterogeneity_dpp4_all_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "DPP4 vs all"),
+  heterogeneity_sglt2_all_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SGLT2 vs all"),
+  heterogeneity_su_all_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "SU vs all"),
+  heterogeneity_tzd_all_p_values %>% select(modifier, p_value_fdr) %>% mutate(comparison = "TZD vs all")
+) %>%
+  as.data.frame() %>%
+  ggplot(aes(x = modifier, y = -log(p_value_fdr), colour = comparison)) +
+  geom_hline(yintercept = -log(0.05), colour = "black", linetype = "dashed") +
+  geom_point() +
+  scale_y_continuous(trans='log10') +
+  coord_flip() +
+  theme_bw()
+dev.off()
 
 
 
