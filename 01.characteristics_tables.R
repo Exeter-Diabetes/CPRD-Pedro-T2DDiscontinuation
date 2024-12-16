@@ -211,38 +211,51 @@ cprd_tables <- set_up_data(
   full_prescribing_history = TRUE
 ) %>%
   # drop_na(-stopdrug_12m_6mFU)
-  drop_na(-prehdl, -stopdrug_6m_6mFU, -stopdrug_12m_6mFU) %>%
+  # drop_na(-prehdl, -stopdrug_6m_6mFU, -stopdrug_12m_6mFU) %>%
   mutate(drugline = factor(drugline, levels = c("1", "2", "3", "4", "5+"), labels = c("1", "2", "3", "4+", "4+")))
 
+
+# unique patients
+unique(cprd_tables$patid) %>% length()
 
 output_path <- "results/tables"
 
 
+interim_table <- cprd_tables %>%
+  mutate(
+    dstartdate_dm_dur_NA = ifelse(is.na(dstartdate_dm_dur), 1, 0),
+    dstartdate_age_NA = ifelse(is.na(dstartdate_age), 1, 0),
+    prehba1c_NA = ifelse(is.na(prehba1c), 1, 0),
+    preegfr_NA = ifelse(is.na(preegfr), 1, 0),
+    prebmi_NA = ifelse(is.na(prebmi), 1, 0)
+  )
+
 vars <- c(
   # Outcome
-  "stopdrug_3m_6mFU",
-  "stopdrug_6m_6mFU",
-  "stopdrug_12m_6mFU",
+  # "stopdrug_3m_6mFU",
+  # "stopdrug_6m_6mFU",
+  # "stopdrug_12m_6mFU",
   # Extra info
-  "dstartdate_dm_dur", "dstartdate_age", "drugline", "numdrugs", "smoking_cat", "imd2015_10",
-  "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
+  "dstartdate_age", "dstartdate_age_NA", "dstartdate_dm_dur", "dstartdate_dm_dur_NA", "gender", "smoking_cat", 
+  "ethnicity_5cat", "imd2015_10",
   # Biomarkers
-  "prehba1c", "preegfr", "prebmi",
+  "prebmi", "prebmi_NA", "prehba1c", "prehba1c_NA", "preegfr", "preegfr_NA", 
+  "predrug_statins", "predrug_bloodmed", "predrug_frailty_proxy", "stopdrug_3m_3mFU_MFN_hist",
+  "numdrugs", "drugline"
   # Comorbidities
-  ## Frailty proxy
-  "predrug_frailty_proxy"
 )
 
 
 
 vars_cat <- c(
   # Outcome
-  "stopdrug_3m_6mFU",
-  "stopdrug_6m_6mFU",
-  "stopdrug_12m_6mFU",
+  # "stopdrug_3m_6mFU",
+  # "stopdrug_6m_6mFU",
+  # "stopdrug_12m_6mFU",
   # Extra info
   "drugline", "numdrugs", "smoking_cat", "imd2015_10",
   "predrug_statins", "stopdrug_3m_3mFU_MFN_hist", "ethnicity_5cat", "gender", "predrug_bloodmed",
+  "dstartdate_age_NA", "dstartdate_dm_dur_NA", "prebmi_NA", "prehba1c_NA", "preegfr_NA", 
   # Comorbidities
   ## Frailty proxy
   "predrug_frailty_proxy"
@@ -255,13 +268,75 @@ table_characteristics_drugs <- CreateTableOne(
   factorVars = vars_cat,
   includeNA = TRUE,
   strata = c("drugclass"),
-  data = cprd_tables,
+  data = interim_table,
   test = TRUE
 )
 
 table_characteristics_drugs_print <- print(table_characteristics_drugs, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
 
 write.csv(table_characteristics_drugs_print, file = paste0(output_path, "/table_characteristics_drugs.csv"))
+
+### Discontinuation
+
+vars <- c(
+  # Outcome
+  "stopdrug_3m_6mFU",
+  "stopdrug_6m_6mFU",
+  "stopdrug_12m_6mFU"
+)
+
+vars_cat <- c(
+  # Outcome
+  "stopdrug_3m_6mFU",
+  "stopdrug_6m_6mFU",
+  "stopdrug_12m_6mFU"
+)
+
+table_characteristics_outcome <- CreateTableOne(
+  vars = vars,
+  factorVars = vars_cat,
+  includeNA = TRUE,
+  strata = c("drugclass"),
+  data = interim_table,
+  test = TRUE
+)
+
+table_characteristics_outcome_print <- print(table_characteristics_outcome, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
+
+write.csv(table_characteristics_outcome_print, file = paste0(output_path, "/table_characteristics_outcome.csv"))
+
+### Custom table
+
+
+interim_table <- cprd_tables %>%
+  mutate(
+    dstartdate_age = ifelse(dstartdate_age < 50, "<50", ifelse(dstartdate_age >= 50 & dstartdate_age < 60, "50-59", ifelse(dstartdate_age >=60 & dstartdate_age < 70, "60-69", "70+"))),
+    dstartdate_dm_dur = ifelse(dstartdate_dm_dur < 3, "<2", ifelse(dstartdate_dm_dur >= 3 & dstartdate_dm_dur < 6, "3-5", ifelse(dstartdate_dm_dur >= 6 & dstartdate_dm_dur < 10, "6-9", "10+"))),
+    preegfr = ifelse(preegfr < 75, "<75", ifelse(preegfr >= 75 & preegfr < 90, "75-90", "90+")),
+    prebmi = ifelse(prebmi < 30, "<30", ifelse(prebmi >= 30 & prebmi < 35, "30-35", "35+")),
+    prehba1c = ifelse(prehba1c < 64, "53-64", ifelse(prehba1c >= 64 & prehba1c < 75, "64-75", ifelse(prehba1c >= 75 & prehba1c < 86, "75-86", "86+")))
+  )
+
+
+vars <- c(
+  "dstartdate_age", "dstartdate_dm_dur",
+  "prebmi", "prehba1c", "preegfr"
+)
+
+table_characteristics_drugs_v2 <- CreateTableOne(
+  vars = vars,
+  factorVars = vars,
+  includeNA = TRUE,
+  strata = c("drugclass"),
+  data = interim_table,
+  test = TRUE
+)
+
+table_characteristics_drugs_v2_print <- print(table_characteristics_drugs_v2, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
+
+write.csv(table_characteristics_drugs_v2_print, file = paste0(output_path, "/table_characteristics_drugs_v2.csv"))
+
+
 
 
 ### All drugs
@@ -294,6 +369,8 @@ table_characteristics_disc_drug <- CreateTableOne(
 table_characteristics_disc_drug_print <- print(table_characteristics_disc_drug, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
 
 write.csv(table_characteristics_disc_drug_print, file = paste0(output_path, "/table_characteristics_disc_drug.csv"))
+
+
 
 
 
