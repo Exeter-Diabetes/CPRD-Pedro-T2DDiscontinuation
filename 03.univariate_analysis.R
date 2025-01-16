@@ -1508,7 +1508,7 @@ cprd_dataset %>%
                     name = "Therapy", guide = guide_legend(reverse = TRUE)) +
   scale_y_discrete(limits = rev, breaks = c("GLP1", "DPP4", "SGLT2", "TZD", "SU"), labels = c("GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")) +
   scale_alpha_discrete(limits = rev, range = c(1, 0.4), breaks = c("perc_12m", "perc_6m", "perc_3m"), labels = c("12-month", "6-month", "3-month"), name = "Discontinuation", guide = guide_legend(reverse = TRUE, row = 1)) +
-  scale_x_continuous("Proportion of discontinuation", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
+  scale_x_continuous("Proportion discontinuing therapy (%)", labels = scales::percent, limits = c(0, 0.4), breaks = seq(0, 0.4, 0.1)) +
   guides(fill = "none") +
   theme_bw() +
   theme(

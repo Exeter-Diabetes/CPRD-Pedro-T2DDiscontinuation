@@ -137,8 +137,8 @@ plot_pooled_3m.overall <- calibration_plot(
   pred = "pred",
   group = "grouping",
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.3), breaks = seq(0, 1, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.3), breaks = seq(0, 1, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.3), breaks = seq(0, 1, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.3), breaks = seq(0, 1, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
@@ -161,8 +161,8 @@ plot_pooled_3m.drugs <- calibration_plot(
   pred = "pred", 
   group = "drugclass",
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
@@ -240,7 +240,7 @@ plot_roc_3m <- roc_coords_3m %>%
   geom_path(aes(x = 1 - specificity.2.5., y = sensitivity.2.5.), alpha = 0.4) +
   geom_path(aes(x = 1 - specificity.50., y = sensitivity.50.)) +
   geom_path(aes(x = 1 - specificity.97.5., y = sensitivity.97.5.), alpha = 0.4) +
-  annotate("label", x = 0.60, y = 0.125, size = 5, label = paste0("AUROC=", signif(roc_values_3m_overall[2], digits = 3), ")")) + 
+  annotate("label", x = 0.60, y = 0.125, size = 5, label = paste0("AUROC=", signif(roc_values_3m_overall[2], digits = 3), "\n95%CI 0.608-0.616")) + 
   scale_x_continuous("1 - Specificity", limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
   scale_y_continuous("Sensitivity", limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
   theme_bw() +
@@ -270,6 +270,55 @@ plot_roc_3m.drugs <- roc_coords_3m_by_drugs %>%
   
   
   
+pdf("results/figures/07.roc_cal_overall_by_drug.pdf", width = 10, height = 10)
+patchwork::wrap_plots(
+  # calibration curve
+  plot_pooled_3m.overall +
+    scale_x_continuous("Predicted discontinuation (%)", labels = scales::percent) +
+    scale_y_continuous("Observed discontinuation (%)", labels = scales::percent) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 16)
+    ),
+  # discrimination curve
+  plot_roc_3m +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 20)
+    ),
+  # calibration curve
+  plot_pooled_3m.drugs +
+    scale_x_continuous("Predicted discontinuation (%)", labels = scales::percent) +
+    scale_y_continuous("Observed discontinuation (%)", labels = scales::percent) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 16)
+    ),
+  # discrimination curve
+  plot_roc_3m.drugs +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 20)
+    ),
+  ggpubr::as_ggplot(get_legend(plot_pooled_3m.drugs))
+) +
+  patchwork::plot_layout(design = "
+                         AB
+                         CD
+                         EE
+                         ", heights = c(1,1,0.1)) +
+  patchwork::plot_annotation(tag_levels = list(c("A.1", "A.2", "B.1", "B.2", "", "")))
+dev.off()
+
+
 pdf("results/figures/07.roc_3m_overall.pdf", width = 5, height = 5)
 
 plot_roc_3m
@@ -368,8 +417,8 @@ plot_pooled_6m.overall <- calibration_plot(
   pred = "pred",
   group = "grouping",
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
@@ -384,8 +433,8 @@ plot_pooled_6m.drugs <- calibration_plot(
   pred = "pred", 
   group = "drugclass",
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
@@ -554,8 +603,8 @@ plot_pooled_12m.overall <- calibration_plot(
   pred = "pred",
   group = "grouping",
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
@@ -570,8 +619,8 @@ plot_pooled_12m.drugs <- calibration_plot(
   pred = "pred", 
   group = "drugclass", 
   nTiles = 10)$calibration_plot +
-  scale_x_continuous("Prediction", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
-  scale_y_continuous("Observation", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_x_continuous("Predicted discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
+  scale_y_continuous("Observed discontinuation (%)", limits = c(0, 0.7), breaks = seq(0, 0.7, 0.1)) +
   theme_bw() +
   scale_colour_manual(values = c("Pooled" = "black", "SGLT2" = "#E69F00", "GLP1" = "#56B4E9", "SU" = "#CC79A7", "DPP4" = "#0072B2", "TZD" = "#D55E00", "MFN" = "grey"), breaks = rev(c("Pooled", "GLP1", "DPP4", "SGLT2", "TZD", "SU")), labels = rev(c("Pooled", "GLP-1RA", "DPP4i", "SGLT2i", "TZD", "SU")), name = "Therapy", guide = guide_legend(reverse = TRUE, nrow = 1)) +
   theme(
