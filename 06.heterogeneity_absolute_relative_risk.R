@@ -71,7 +71,7 @@ cprd_dataset.val <- cprd_dataset.val %>%
 
 breakpoints <- c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)
 # Odds ratios 
-odds_ratios.no_weight.all <- calc_odds_ratios(cprd_dataset.val, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", break_points = breakpoints)
+odds_ratios.no_weight.all <- calc_odds_ratios(cprd_dataset.val, drugs = c("MFN", "DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", break_points = breakpoints)
 
 
 
@@ -154,7 +154,7 @@ cprd_dataset.val <- cprd_dataset.val %>%
 
 breakpoints <- c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)
 # Odds ratios 
-odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.val, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", break_points = breakpoints)
+odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.val, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", break_points = breakpoints)
 
 
 
@@ -206,7 +206,7 @@ file.remove(c("results/figures/06.plot_1.pdf", "results/figures/06.plot_2.pdf"))
 breakpoints <- c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)
 
 # ATE not adjusted
-ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 10) %>%
+ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", n_bootstrap = 10) %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
@@ -224,7 +224,7 @@ ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.dev, break_points = breakpo
   )))
 
 # Predicted benefit
-absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.dev, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight") %>%
+absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.dev, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight") %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
@@ -242,7 +242,7 @@ absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.dev, break_p
   )))
 
 # Odds ratios 
-odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", break_points = breakpoints) %>%
+odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.dev, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", break_points = breakpoints) %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
@@ -1445,7 +1445,7 @@ dev.off()
 breakpoints <- c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)
 
 # ATE not adjusted
-ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.val, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", n_bootstrap = 10) %>%
+ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.val, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", n_bootstrap = 10) %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
@@ -1463,7 +1463,7 @@ ATE.var_adj.no_adj_2nd_line <- calc_ATE(cprd_dataset.val, break_points = breakpo
   )))
 
 # Predicted benefit
-absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.val, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight") %>%
+absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.val, break_points = breakpoints, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight") %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
@@ -1481,7 +1481,7 @@ absolute.var_adj.no_adj_2n_line <- calc_predicted_risk(cprd_dataset.val, break_p
   )))
 
 # Odds ratios 
-odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.val, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = "no_weight", break_points = breakpoints) %>%
+odds_ratios.no_weight.2nd_line <- calc_odds_ratios(cprd_dataset.val, drugs = c("DPP4", "GLP1", "SGLT2", "SU", "TZD"), pred.variable = ".no_weight", break_points = breakpoints) %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
     group == "(-0.1,-0.05]", paste0("Benefit 5-10% (n=", N, ", events = ", events, ")"), ifelse(
       group == "(-0.05,-0.025]", paste0("Benefit 2.5-5% (n=", N, ", events = ", events, ")"), ifelse(
