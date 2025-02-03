@@ -673,7 +673,7 @@ set_up_data <- function(
 #:--------------------------------------------------
 
 
-calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable = NULL, break_points = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random", n_bootstrap = 10) {
+calc_ATE <- function(data, drugs, pred.variable = ".no_weight", weight.variable = NULL, break_points = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random", n_bootstrap = 10) {
   
   # output object
   final_dataset <- NULL
@@ -699,8 +699,8 @@ calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable =
       data.initial <- data %>%
         filter(drugclass %in% current_drugs) %>%
         rename(
-          "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-          "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
+          "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
+          "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
         ) %>%
         mutate(diff = pred.drug_1 - pred.drug_2) %>%
         mutate(group = ntile(diff, ntiles))
@@ -712,8 +712,8 @@ calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable =
       data.initial <- data %>%
         filter(drugclass %in% current_drugs) %>%
         rename(
-          "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-          "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
+          "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
+          "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
         ) %>%
         mutate(diff = pred.drug_1 - pred.drug_2) %>%
         mutate(group = cut(diff, breaks = break_points)) %>%
@@ -953,7 +953,7 @@ calc_ATE <- function(data, drugs, pred.variable = "no_weight", weight.variable =
 
 
 
-calc_odds_ratios <- function(data, drugs, pred.variable = "no_weight", break_points = c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)) {
+calc_odds_ratios <- function(data, drugs, pred.variable = ".no_weight", break_points = c(-0.1, -0.05, -0.025, 0, 0.025, 0.05, 0.1)) {
   
   # output object
   final_dataset <- NULL
@@ -977,8 +977,8 @@ calc_odds_ratios <- function(data, drugs, pred.variable = "no_weight", break_poi
       filter(drugclass %in% current_drugs) %>%
       mutate(drugclass = factor(drugclass, levels = current_drugs)) %>%
       rename(
-        "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-        "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
+        "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
+        "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
       ) %>%
       mutate(diff = pred.drug_1 - pred.drug_2) %>%
       mutate(group = cut(diff, breaks = break_points)) %>%
@@ -1086,7 +1086,7 @@ calc_odds_ratios <- function(data, drugs, pred.variable = "no_weight", break_poi
 
 
 
-calc_predicted_risk <- function(data, drugs, pred.variable = "no_weight", weight.variable = NULL, break_points = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random") {
+calc_predicted_risk <- function(data, drugs, pred.variable = ".no_weight", weight.variable = NULL, break_points = NULL, breakdown = NULL, matching = FALSE, ntiles = 10, caliper = 0.05, replace = FALSE, order = "random") {
   
   # output object
   final_dataset <- NULL
@@ -1112,8 +1112,8 @@ calc_predicted_risk <- function(data, drugs, pred.variable = "no_weight", weight
       data.initial <- data %>%
         filter(drugclass %in% current_drugs) %>%
         rename(
-          "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-          "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
+          "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
+          "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
         ) %>%
         mutate(diff = pred.drug_1 - pred.drug_2) %>%
         mutate(group = ntile(diff, ntiles))
@@ -1125,8 +1125,8 @@ calc_predicted_risk <- function(data, drugs, pred.variable = "no_weight", weight
       data.initial <- data %>%
         filter(drugclass %in% current_drugs) %>%
         rename(
-          "pred.drug_1" = paste0("pred.", pred.variable, ".", current_drugs[1]),
-          "pred.drug_2" = paste0("pred.", pred.variable, ".", current_drugs[2]),
+          "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
+          "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
         ) %>%
         mutate(diff = pred.drug_1 - pred.drug_2) %>%
         mutate(group = cut(diff, breaks = break_points)) %>%
