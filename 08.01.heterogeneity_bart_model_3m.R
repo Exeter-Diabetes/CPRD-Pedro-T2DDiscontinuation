@@ -279,7 +279,7 @@ odds_ratios.overall.no_adj <- calc_odds_ratios(interim_dataset, drugs = c("SGLT2
 
 
 
-pdf("results/figures/08.absolute_relative_development.pdf", width = 20, height = 7)
+pdf("results/figures/08.absolute_relative_development_3m.pdf", width = 20, height = 7)
 
 
 ##: Per drug combination: SGLT2vsDPP4
