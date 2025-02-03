@@ -975,7 +975,7 @@ calc_odds_ratios <- function(data, drugs, pred.variable = ".no_weight", break_po
     # collect only the drugs we are interested
     data.initial <- data %>%
       filter(drugclass %in% current_drugs) %>%
-      mutate(drugclass = factor(drugclass, levels = current_drugs)) %>%
+      mutate(drugclass = factor(drugclass, levels = rev(current_drugs))) %>%
       rename(
         "pred.drug_1" = paste0("pred", pred.variable, ".", current_drugs[1]),
         "pred.drug_2" = paste0("pred", pred.variable, ".", current_drugs[2]),
