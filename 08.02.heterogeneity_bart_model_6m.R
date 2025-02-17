@@ -219,6 +219,58 @@ interim_dataset <- cprd_dataset.6m %>%
     pred.TZD = predictions_TZD_6m
     )
 
+# ATE by deciles
+ATE.deciles.adj <- calc_ATE(interim_dataset, ntiles = 10, drugs = c("SGLT2", "GLP1", "TZD", "SU", "DPP4"), pred.variable = "", n_bootstrap = 50,
+                            breakdown = c("dstartdate_age", 
+                                          "gender", 
+                                          "imd2015_10", 
+                                          "prebmi", 
+                                          "dstartdate_dm_dur", 
+                                          "prehba1c", 
+                                          "drugline", 
+                                          "predrug_frailty_proxy",
+                                          "ethnicity_5cat",
+                                          "numdrugs",
+                                          "predrug_bloodmed",
+                                          "smoking_cat",
+                                          "predrug_statins",
+                                          "preegfr",
+                                          "stopdrug_3m_3mFU_MFN_hist"))
+
+
+
+pdf("results/figures/08.drug_vs_drug_calibration_6m.pdf", width = 17, height = 7)
+
+ATE.deciles.adj %>%
+  group_by(Type) %>%
+  mutate(
+    total = sum(N),
+    drug_1 = ifelse(drug_1 == "SGLT2", "SGLT2i", ifelse(drug_1 == "GLP1", "GLP-1RA", ifelse(drug_1 == "DPP4", "DPP4i", drug_1))),
+    drug_2 = ifelse(drug_2 == "SGLT2", "SGLT2i", ifelse(drug_2 == "GLP1", "GLP-1RA", ifelse(drug_2 == "DPP4", "DPP4i", drug_2))),
+    title = paste0(drug_1, " - ", drug_2, "\nn = ", format(total, big.mark = ","))
+  ) %>%
+  ungroup() %>%
+  mutate(
+    title = factor(title, levels = c("SGLT2i - DPP4i\nn = 105,473", "SGLT2i - GLP-1RA\nn = 58,285", "SGLT2i - SU\nn = 77,048", "SGLT2i - TZD\nn = 48,365", "SU - DPP4i\nn = 94,625", "GLP-1RA - DPP4i\nn = 75,862", "GLP-1RA - SU\nn = 47,437", "GLP-1RA - TZD\nn = 18,754", "TZD - SU\nn = 37,517", "TZD - DPP4i\nn = 65,942"))
+  ) %>%
+  ggplot(aes(x = diff.pred, y = obs, ymin = lci, ymax = uci)) +
+  geom_vline(aes(xintercept = 0), linetype = "dashed", colour = "black") +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", colour = "black") +
+  geom_abline(aes(intercept = 0, slope = 1), colour = "red") +
+  geom_errorbar() +
+  geom_point() +
+  labs(x = "Predicted risk of discontinuation difference (%)", y = "Observed discontinuation difference (%)") +
+  # ggtitle("T2D 3-month discontinuation calibration (adjusted, 50 bootstraps)") +
+  scale_x_continuous(labels = scales::percent, breaks = seq(-0.4, 0.4, 0.05)) +
+  scale_y_continuous(labels = scales::percent, breaks = seq(-0.4, 0.4, 0.05)) +
+  theme_bw() +
+  facet_wrap(~title, nrow = 2)
+  # theme(
+  #   panel.spacing = unit(0.3, "cm", data = NULL)
+  # )
+
+dev.off()
+
 # ATE not adjusted
 ATE.overall.no_adj <- calc_ATE(interim_dataset, break_points = breakpoints, drugs = c("SGLT2", "GLP1", "TZD", "SU", "DPP4"), pred.variable = "", n_bootstrap = 10) %>%
   mutate(label = ifelse(group == "(-1,-0.1]", paste0("Benefit >10% (n=", N, ", events = ", events, ")"), ifelse(
@@ -379,8 +431,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -487,8 +539,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -595,8 +647,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -702,8 +754,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -810,8 +862,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -918,8 +970,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -1026,8 +1078,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -1134,8 +1186,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -1242,8 +1294,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
@@ -1351,8 +1403,8 @@ patchwork::wrap_plots(
     ggtitle(paste0("Relative benefit (below 1 = benefit on ", drug1, ")")) +
     theme_bw()
   
-) + plot_layout(axes = "collect") +
-  plot_annotation(
+) + patchwork::plot_layout(axes = "collect") +
+  patchwork::plot_annotation(
     title = paste0(drug1, " vs ", drug2)
   ) &
   theme(
