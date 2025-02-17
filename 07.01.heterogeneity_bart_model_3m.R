@@ -280,7 +280,7 @@ calc_CATE <- function(data, drugs, title) {
   
 }
 
-pdf("results/figures/08.CATE_histogram_drugs_3m.pdf", width = 13, height = 6)
+pdf("results/figures/07.CATE_histogram_drugs_3m.pdf", width = 13, height = 6)
 calc_CATE(interim_dataset, drugs = c("SGLT2", "DPP4")) %>%
   rbind(
     calc_CATE(interim_dataset, drugs = c("SGLT2", "GLP1")),
@@ -361,7 +361,7 @@ dev.off()
 # 
 # table_characteristics_drugs_print <- print(table_characteristics_drugs, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
 # 
-# write.csv(table_characteristics_drugs_print, file = "results/tables/08.01.heterogeneity_SGLT2_DPP4.csv")
+# write.csv(table_characteristics_drugs_print, file = "results/tables/07.01.heterogeneity_SGLT2_DPP4.csv")
 # 
 # # GLP1/TZD
 # table_characteristics_drugs <- CreateTableOne(
@@ -379,7 +379,7 @@ dev.off()
 # 
 # table_characteristics_drugs_print <- print(table_characteristics_drugs, exact = "stage", quote = FALSE, noSpaces = TRUE, printToggle = FALSE, contDigits = 1)
 # 
-# write.csv(table_characteristics_drugs_print, file = "results/tables/08.01.heterogeneity_GLP1_TZD.csv")
+# write.csv(table_characteristics_drugs_print, file = "results/tables/07.01.heterogeneity_GLP1_TZD.csv")
 
   
 
@@ -403,7 +403,7 @@ ATE.deciles.adj <- calc_ATE(interim_dataset, ntiles = 10, drugs = c("SGLT2", "GL
 
 
 
-pdf("results/figures/08.drug_vs_drug_calibration_3m.pdf", width = 13, height = 6)
+pdf("results/figures/07.drug_vs_drug_calibration_3m.pdf", width = 13, height = 6)
 
 ATE.deciles.adj %>%
   group_by(Type) %>%
@@ -496,7 +496,7 @@ odds_ratios.overall.no_adj <- calc_odds_ratios(interim_dataset, drugs = c("SGLT2
 
 
 
-pdf("results/figures/08.absolute_relative_development_3m.pdf", width = 20, height = 7)
+pdf("results/figures/07.absolute_relative_development_3m.pdf", width = 20, height = 7)
 
 
 ##: Per drug combination: SGLT2vsDPP4
