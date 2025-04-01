@@ -19,6 +19,7 @@ library(pROC)
 library(predtools)
 library(bartMachine)
 library(BART)
+library(rms)
 
 
 
@@ -130,6 +131,47 @@ if (class(try(
 }
 
 
+# Variable importance (sudo)
+variable_importance_cohort_3m <- cprd_dataset.3m %>%
+  mutate(
+    pred = bartmachine_full_model_3m$p_hat
+  )
+
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_3m, x = TRUE, y = TRUE)
+
+values <- plot(anova(m1), what = 'proportion R2')
+
+plot_variable_important_3m <- as.data.frame(values) %>%
+  rownames_to_column() %>%
+  left_join(
+    data.frame(
+      rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
+      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+    ), by = c("rowname")
+  ) %>%
+  select(-rowname) %>%
+  mutate(plotname = factor(plotname),
+         values = values * 100) %>%
+  ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
+  geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
+  geom_point(size = 2, colour = "black") +
+  ggtitle("Relative importance for discontinuation rate") +
+  xlab("Relative Importance (%)") +
+  theme_bw() +
+  theme(axis.text.y = element_text(angle = 45, face = "bold"),
+        axis.title.y = element_blank())
+
+
+pdf("results/figures/06.var_importance_3m.pdf", width = 8, height = 6)
+plot_variable_important_3m +
+  theme(
+    axis.text = element_text(size = 14),
+    plot.title = element_text(size = 15, hjust = 0),
+    plot.margin = unit(c(0.2, 0.2, 3, 0.2), "cm")
+  )
+dev.off()
+
+
 
 plot_pooled_3m.overall <- calibration_plot(
   data = cprd_dataset.3m %>% mutate(pred = bartmachine_full_model_3m$p_hat) %>% mutate(stopdrug_3m_6mFU = as.numeric(stopdrug_3m_6mFU)-1) %>% mutate(grouping = "Pooled"), 
@@ -168,6 +210,7 @@ plot_pooled_3m.drugs <- calibration_plot(
   theme(
     legend.position = "bottom"
   )
+
 
 
 roc_values_3m_overall <- pROC::roc(response = cprd_dataset.3m %>%
@@ -218,6 +261,38 @@ for (i in unique(interim_dataset$drugclass)) {
 # saveRDS(roc_coords_3m_by_drugs, "results/Models/bartmachine/roc_coords_3m_by_drugs.rds")
 
 roc_coords_3m_by_drugs <- readRDS("results/Models/bartmachine/roc_coords_3m_by_drugs.rds")
+
+
+
+ppv_coords_3m <- pROC::coords(pROC::roc(
+    cprd_dataset.3m %>%
+      select(stopdrug_3m_6mFU) %>%
+      mutate(stopdrug_3m_6mFU = factor(stopdrug_3m_6mFU)) %>%
+      unlist(),
+    bartmachine_full_model_3m$p_hat
+  ), ret=c("threshold", "specificity", "ppv", "precision", "recall"))
+
+plot_test <- ppv_coords_3m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = threshold, y = ppv))
+
+
+pdf("results/figures/06.precision_recall_3m.pdf", width = 5, height = 5.5)
+ppv_coords_3m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = recall, y = precision, colour = threshold)) +
+  scale_colour_continuous(type = "viridis", limits = c(0, 1)) +
+  theme_bw() +
+  labs(x = "Recall", y = "Precision", colour = "Threshold") +
+  theme(
+    legend.position = "bottom",
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 17),
+    legend.title = element_text(size = 13)
+  )
+dev.off()
 
 
 # roc_coords_3m <- pROC::ci(pROC::roc(
@@ -409,6 +484,48 @@ if (class(try(
   
 }
 
+# Variable importance (sudo)
+variable_importance_cohort_6m <- cprd_dataset.6m %>%
+  mutate(
+    pred = bartmachine_full_model_6m$p_hat
+  )
+
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_6m, x = TRUE, y = TRUE)
+
+values <- plot(anova(m1), what = 'proportion R2')
+
+plot_variable_important_6m <- as.data.frame(values) %>%
+  rownames_to_column() %>%
+  left_join(
+    data.frame(
+      rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
+      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+    ), by = c("rowname")
+  ) %>%
+  select(-rowname) %>%
+  mutate(plotname = factor(plotname),
+         values = values * 100) %>%
+  ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
+  geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
+  geom_point(size = 2, colour = "black") +
+  ggtitle("Relative importance for discontinuation rate") +
+  xlab("Relative Importance (%)") +
+  theme_bw() +
+  theme(axis.text.y = element_text(angle = 45, face = "bold"),
+        axis.title.y = element_blank())
+
+
+
+
+pdf("results/figures/06.var_importance_6m.pdf", width = 8, height = 6)
+plot_variable_important_6m +
+  theme(
+    axis.text = element_text(size = 14),
+    plot.title = element_text(size = 15, hjust = 0),
+    plot.margin = unit(c(0.2, 0.2, 3.5, 0.2), "cm")
+  )
+dev.off()
+
 
 
 plot_pooled_6m.overall <- calibration_plot(
@@ -491,6 +608,38 @@ for (i in unique(interim_dataset$drugclass)) {
 # saveRDS(roc_coords_6m_by_drugs, "results/Models/bartmachine/roc_coords_6m_by_drugs.rds")
 
 roc_coords_6m_by_drugs <- readRDS("results/Models/bartmachine/roc_coords_6m_by_drugs.rds")
+
+
+ppv_coords_6m <- pROC::coords(pROC::roc(
+  cprd_dataset.6m %>%
+    select(stopdrug_6m_6mFU) %>%
+    mutate(stopdrug_6m_6mFU = factor(stopdrug_6m_6mFU)) %>%
+    unlist(),
+  bartmachine_full_model_6m$p_hat
+), ret=c("threshold", "specificity", "ppv", "precision", "recall"))
+
+plot_test <- ppv_coords_6m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = threshold, y = ppv))
+
+
+pdf("results/figures/06.precision_recall_6m.pdf", width = 5, height = 5.5)
+ppv_coords_6m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = recall, y = precision, colour = threshold)) +
+  scale_colour_continuous(type = "viridis", limits = c(0, 1)) +
+  theme_bw() +
+  labs(x = "Recall", y = "Precision", colour = "Threshold") +
+  theme(
+    legend.position = "bottom",
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 17),
+    legend.title = element_text(size = 13)
+  )
+dev.off()
+
 
 
 # pROC::roc(response = cprd_dataset.6m %>%
@@ -586,6 +735,50 @@ if (class(try(
   saveRDS(bartmachine_full_model_12m, "results/Models/bartmachine/bartmachine_full_model_12m.rds")
   
 }
+
+
+# Variable importance (sudo)
+variable_importance_cohort_12m <- cprd_dataset.12m %>%
+  mutate(
+    pred = bartmachine_full_model_12m$p_hat
+  )
+
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_12m, x = TRUE, y = TRUE)
+
+values <- plot(anova(m1), what = 'proportion R2')
+
+plot_variable_important_12m <- as.data.frame(values) %>%
+  rownames_to_column() %>%
+  left_join(
+    data.frame(
+      rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
+      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+    ), by = c("rowname")
+  ) %>%
+  select(-rowname) %>%
+  mutate(plotname = factor(plotname),
+         values = values * 100) %>%
+  ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
+  geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
+  geom_point(size = 2, colour = "black") +
+  ggtitle("Relative importance for discontinuation rate") +
+  xlab("Relative Importance (%)") +
+  theme_bw() +
+  theme(axis.text.y = element_text(angle = 45, face = "bold"),
+        axis.title.y = element_blank())
+
+
+
+pdf("results/figures/06.var_importance_12m.pdf", width = 8, height = 6)
+plot_variable_important_12m +
+  theme(
+    axis.text = element_text(size = 14),
+    plot.title = element_text(size = 15, hjust = 0),
+    plot.margin = unit(c(0.2, 0.2, 3.5, 0.2), "cm")
+  )
+dev.off()
+
+
 
 
 roc_values_12m_overall <- pROC::roc(response = cprd_dataset.12m %>%
@@ -694,6 +887,40 @@ dev.off()
 #             mutate(stopdrug_12m_6mFU = factor(stopdrug_12m_6mFU)) %>%
 #             unlist(),
 #           predictor = bartmachine_full_model_12m$p_hat, ci = TRUE)
+
+
+
+
+
+ppv_coords_12m <- pROC::coords(pROC::roc(
+  cprd_dataset.12m %>%
+    select(stopdrug_12m_6mFU) %>%
+    mutate(stopdrug_12m_6mFU = factor(stopdrug_12m_6mFU)) %>%
+    unlist(),
+  bartmachine_full_model_12m$p_hat
+), ret=c("threshold", "specificity", "ppv", "precision", "recall"))
+
+plot_test <- ppv_coords_12m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = threshold, y = ppv))
+
+
+pdf("results/figures/06.precision_recall_12m.pdf", width = 5, height = 5.5)
+ppv_coords_12m %>%
+  as.data.frame() %>%
+  ggplot() +
+  geom_path(aes(x = recall, y = precision, colour = threshold)) +
+  scale_colour_continuous(type = "viridis", limits = c(0, 1)) +
+  theme_bw() +
+  labs(x = "Recall", y = "Precision", colour = "Threshold") +
+  theme(
+    legend.position = "bottom",
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 17),
+    legend.title = element_text(size = 13)
+  )
+dev.off()
 
 
 

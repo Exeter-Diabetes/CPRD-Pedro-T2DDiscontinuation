@@ -47,7 +47,7 @@ set_up_data <- function(
   
   
   # load dataset - 1st instance
-  load(paste0("/slade/CPRD_data/mastermind_2022/", raw_data, ".Rda"))   # name: t2d_1stinstance
+  load(paste0("/slade/CPRD_data/2020_dataset/Mastermind/", raw_data, ".Rda"))   # name: t2d_1stinstance
   
   cprd_dataset <- t2d_1stinstance
   
@@ -156,6 +156,20 @@ set_up_data <- function(
     print("#####################################")
   }
   
+  ###############################################
+  
+  # Remove patients on insulin
+  
+  cprd_dataset <- cprd_dataset %>%
+    filter(INS == 0)
+  
+  ## Check patients after data
+  if (isTRUE(diagnosis)) {
+    print("#####################################")
+    print(paste("Patients not on INS (insulin):", nrow(cprd_dataset)))
+    print(table(cprd_dataset$drugclass, useNA = "ifany"))
+    print("#####################################")
+  }
   
   #####################################################################################
   #####################################################################################
