@@ -134,10 +134,12 @@ if (class(try(
 # Variable importance (sudo)
 variable_importance_cohort_3m <- cprd_dataset.3m %>%
   mutate(
-    pred = bartmachine_full_model_3m$p_hat
+    pred = bartmachine_full_model_3m$p_hat,
+    numdrugs = as.numeric(numdrugs),
+    drugline = as.numeric(drugline)
   )
 
-m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_3m, x = TRUE, y = TRUE)
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + drugline + numdrugs + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_3m, x = TRUE, y = TRUE)
 
 values <- plot(anova(m1), what = 'proportion R2')
 
@@ -146,7 +148,7 @@ plot_variable_important_3m <- as.data.frame(values) %>%
   left_join(
     data.frame(
       rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
-      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+      plotname = c("Age", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
     ), by = c("rowname")
   ) %>%
   select(-rowname) %>%
@@ -155,19 +157,19 @@ plot_variable_important_3m <- as.data.frame(values) %>%
   ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
   geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
   geom_point(size = 2, colour = "black") +
-  ggtitle("Relative importance for discontinuation rate") +
+  ggtitle("Relative importance for discontinuation risk") +
   xlab("Relative Importance (%)") +
   theme_bw() +
   theme(axis.text.y = element_text(angle = 45, face = "bold"),
         axis.title.y = element_blank())
 
 
-pdf("results/figures/06.var_importance_3m.pdf", width = 8, height = 6)
+pdf("results/figures/06.var_importance_3m.pdf", width = 8, height = 7)
 plot_variable_important_3m +
   theme(
     axis.text = element_text(size = 14),
     plot.title = element_text(size = 15, hjust = 0),
-    plot.margin = unit(c(0.2, 0.2, 3, 0.2), "cm")
+    plot.margin = unit(c(0.2, 0.3, 3.5, 0.2), "cm")
   )
 dev.off()
 
@@ -487,10 +489,12 @@ if (class(try(
 # Variable importance (sudo)
 variable_importance_cohort_6m <- cprd_dataset.6m %>%
   mutate(
-    pred = bartmachine_full_model_6m$p_hat
+    pred = bartmachine_full_model_6m$p_hat,
+    numdrugs = as.numeric(numdrugs),
+    drugline = as.numeric(drugline)
   )
 
-m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_6m, x = TRUE, y = TRUE)
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + drugline + numdrugs + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_6m, x = TRUE, y = TRUE)
 
 values <- plot(anova(m1), what = 'proportion R2')
 
@@ -499,7 +503,7 @@ plot_variable_important_6m <- as.data.frame(values) %>%
   left_join(
     data.frame(
       rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
-      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+      plotname = c("Age", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
     ), by = c("rowname")
   ) %>%
   select(-rowname) %>%
@@ -508,7 +512,7 @@ plot_variable_important_6m <- as.data.frame(values) %>%
   ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
   geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
   geom_point(size = 2, colour = "black") +
-  ggtitle("Relative importance for discontinuation rate") +
+  ggtitle("Relative importance for discontinuation risk") +
   xlab("Relative Importance (%)") +
   theme_bw() +
   theme(axis.text.y = element_text(angle = 45, face = "bold"),
@@ -517,12 +521,12 @@ plot_variable_important_6m <- as.data.frame(values) %>%
 
 
 
-pdf("results/figures/06.var_importance_6m.pdf", width = 8, height = 6)
+pdf("results/figures/06.var_importance_6m.pdf", width = 8, height = 7)
 plot_variable_important_6m +
   theme(
     axis.text = element_text(size = 14),
     plot.title = element_text(size = 15, hjust = 0),
-    plot.margin = unit(c(0.2, 0.2, 3.5, 0.2), "cm")
+    plot.margin = unit(c(0.2, 0.3, 3.5, 0.2), "cm")
   )
 dev.off()
 
@@ -740,10 +744,12 @@ if (class(try(
 # Variable importance (sudo)
 variable_importance_cohort_12m <- cprd_dataset.12m %>%
   mutate(
-    pred = bartmachine_full_model_12m$p_hat
+    pred = bartmachine_full_model_12m$p_hat,
+    numdrugs = as.numeric(numdrugs),
+    drugline = as.numeric(drugline)
   )
 
-m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_12m, x = TRUE, y = TRUE)
+m1 <- rms::ols(pred ~ rcs(dstartdate_age, 3) + gender + imd2015_10 + drugline + numdrugs + rcs(prebmi, 3) + rcs(dstartdate_dm_dur, 3) + rcs(prehba1c, 3) + predrug_frailty_proxy + ethnicity_5cat + predrug_bloodmed + smoking_cat + predrug_statins + rcs(preegfr, 3) + stopdrug_3m_3mFU_MFN_hist, data = variable_importance_cohort_12m, x = TRUE, y = TRUE)
 
 values <- plot(anova(m1), what = 'proportion R2')
 
@@ -752,7 +758,7 @@ plot_variable_important_12m <- as.data.frame(values) %>%
   left_join(
     data.frame(
       rowname = c("dstartdate_age", "gender", "imd2015_10", "prebmi", "dstartdate_dm_dur", "prehba1c", "drugline", "predrug_frailty_proxy", "ethnicity_5cat", "numdrugs", "predrug_bloodmed", "smoking_cat", "predrug_statins", "preegfr", "stopdrug_3m_3mFU_MFN_hist"),
-      plotname = c("Age group", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
+      plotname = c("Age", "Sex", "Index of multiple deprivation", "BMI", "Duration of diabetes", "HbA1c", "Number of therapy classes ever prescribed", "Frailty", "Ethnicity", "Number of other current glucose-lowering therapies", " Blood pressure medication", "Smoking", "Statins", "eGFR", "History of Metformin discontinuation within 3-months")
     ), by = c("rowname")
   ) %>%
   select(-rowname) %>%
@@ -761,7 +767,7 @@ plot_variable_important_12m <- as.data.frame(values) %>%
   ggplot(aes(y = forcats::fct_reorder(plotname, values), x = values)) +
   geom_segment(aes(x = 0, xend = values, yend = forcats::fct_reorder(plotname, values)), linetype = "dashed") +
   geom_point(size = 2, colour = "black") +
-  ggtitle("Relative importance for discontinuation rate") +
+  ggtitle("Relative importance for discontinuation risk") +
   xlab("Relative Importance (%)") +
   theme_bw() +
   theme(axis.text.y = element_text(angle = 45, face = "bold"),
@@ -769,12 +775,12 @@ plot_variable_important_12m <- as.data.frame(values) %>%
 
 
 
-pdf("results/figures/06.var_importance_12m.pdf", width = 8, height = 6)
+pdf("results/figures/06.var_importance_12m.pdf", width = 8, height = 7)
 plot_variable_important_12m +
   theme(
     axis.text = element_text(size = 14),
     plot.title = element_text(size = 15, hjust = 0),
-    plot.margin = unit(c(0.2, 0.2, 3.5, 0.2), "cm")
+    plot.margin = unit(c(0.2, 0.3, 3.5, 0.2), "cm")
   )
 dev.off()
 
